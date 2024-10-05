@@ -1,6 +1,7 @@
 [org 7c00h]
 [bits 16]
-[global start]
+
+jmp start
 
 dapack:     ; lba packet
     db 10h  ; size
@@ -16,22 +17,28 @@ lba:
 
 drive db 0
 
+%include "print.s"
+
 start:
     cmp dl, 80h
+    mov bx, dl_not_80h
     jne error
 
     mov [drive], dl
 
-    mov ah, 42h
+    mov ah, 41h
     mov bx, 55aah
     mov dl, 80h
     int 13h
 
+    mov bx, ext_test_failed
     jc error
 
     mov bx, stage2
     mov [transfer], bx
     call read_disk
+
+    jmp stage2
 
 read_disk:
     mov si, dapack
@@ -39,11 +46,20 @@ read_disk:
     mov dl, [drive]
     int 13h
 
+    mov bx, disk_read_failed
     jc error
 
     ret
 
-error: jmp $
+error:
+    call print
+    jmp $
+
+dl_not_80h          db  "cmp dl, 80h", 0
+ext_test_failed     db  "bios extensions not supported", 0
+disk_read_failed    db  "disk read failed", 0
+volume_not_ext2     db  "volume is not ext2", 0
+stage_two_begin     db  "moving to stage2", 0
 
 times 510-($-$$) db 0
 dw 0xaa55
@@ -53,8 +69,12 @@ inode_table dd 0
 
 ; stage1.5 like grub
 stage2:
+    mov bx, stage_two_begin
+    call print
+
     mov ax, [superblock + 56] ; ext2 signature
     cmp ax, 0xef53            ; check if volume is ext2
+    mov bx, volume_not_ext2
     jne error
 
     mov ax, [superblock + 24] ; (logged) block size
@@ -83,7 +103,7 @@ block_size_ukwn:
 
     call read_disk
 
-    mov ax, 1280h             ; inode 5 is here
+    mov ax, 1280h                ; inode 5 is here
     mov cx, [1280h + 28]         ; count of disk sectors
     lea di, [1280h + 40]         ; direct block pointer 0
 
