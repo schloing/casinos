@@ -7,24 +7,20 @@ default: $(BUILD_DIR) $(BUILD_DIR)/diskimage.dd
 $(BUILD_DIR):
 	mkdir $(BUILD_DIR)
 
-$(BUILD_DIR)/boot.o: boot.s
+$(BUILD_DIR)/stage1.o: stage1.s
 	as --32 $^ -o $@
 
-$(BUILD_DIR)/stage2.o: stage2.c
-	gcc $(STAGE2_CC_ARGS) -c $^ -o $@
+$(BUILD_DIR)/stage2.o: boot.s
+	as --32 $^ -o $@
 
-$(BUILD_DIR)/debug2.o: stage2.c | $(BUILD_DIR)
-	gcc $(STAGE2_CC_ARGS) -c $^ -o $@
-	objdump $(BOOT_OBJDUMP_ARGS) -D $@
-
-$(BUILD_DIR)/boot.bin: $(BUILD_DIR)/boot.o $(BUILD_DIR)/stage2.o
+$(BUILD_DIR)/boot.bin: $(BUILD_DIR)/stage1.o $(BUILD_DIR)/stage2.o
 	ld -m elf_i386 -T boot.ld -o $@ $^
 
 $(BUILD_DIR)/diskimage.dd: $(BUILD_DIR)/boot.bin
 	dd if=/dev/zero of=$@ bs=1048576 count=16
 	dd if=$^ of=$@ conv=notrunc bs=512 count=2
 
-.PHONY: all clean run remote debug debug2.o dump
+.PHONY: all clean run remote debug dump decompile
 
 all: $(BUILD_DIR) $(BUILD_DIR)/diskimage.dd
 
@@ -37,7 +33,13 @@ remote: $(BUILD_DIR)/diskimage.dd
 debug: $(BUILD_DIR)/diskimage.dd
 	gdb -ex "target remote localhost:1234"
 
-dump: $(BUILD_DIR)/debug2.o
+dump: $(BUILD_DIR)/diskimage.dd
+	hexdump -C $^
+	file $^
+	ls -la $^
+
+decompile: $(BUILD_DIR)/diskimage.dd
+	objdump -D -b binary -m i386 $^
 
 clean: $(BUILD_DIR)
 	rm -rf $(BUILD_DIR)
