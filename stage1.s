@@ -3,10 +3,14 @@
 
 call _start
 
-.global diskread
+    .global diskread
     .type   diskread, @function
 diskread:
     pusha
+    movw $5, %cx
+diskread.attempt:
+    cmp $0, %cx
+    je diskread.done
     movb $0x42, %ah
     lea dapack, %si
     movb $.drive, %dl
@@ -14,6 +18,7 @@ diskread:
     jc diskread.failed
     jmp diskread.done
 diskread.failed:
+    dec %cx
     lea str_err_diskread, %si
     call print
 diskread.done:
@@ -70,22 +75,60 @@ hexprint.done:
 _start:
     lea str_hello, %si
     call print
+
+    cli
+    ljmp $0x0000, $.initcs
+.initcs:
+    xorw %ax, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %ss
+    movw $0x7c00, %sp
+    movw %bp, %sp
+    sti
+
+    movb $0x41, %ah
+    movw $0x55aa, %bx
+    movb $.drive, %dl
+    int $0x13
+    jc end
+
     movw $1, .sectors
-    movw $0x7e00, .transfer
+    movw $1, %cx                # lba 0 is bootloader so start at 1
+    movw $0x7e00 - 512, %ax
+load_stage2:
+    addw $.sector_size, %ax
+    movw %cx, .lba
+    movw %ax, .transfer
     call diskread
+    movw %ax, %bx
+    addw $510, %bx
+    cmpw $0xaa55, (%bx)
+    je load_stage2.done
+    inc %cx
+load_stage2.done: 
     movw $0x7e00, %bx
     jmp *%bx
 
+end:
+    lea str_err_no41, %si
+    call print
+    hlt
+    ret
+
     .data
     .global .drive
-    .set .drive, 0x80
+    .set .drive,       0x80
+    .set .sector_size, 512
 
-str_hello:        .asciz "casinos stage 1\n\r"
-str_err_diskread: .asciz "disk read failed\n\r"
-str_newline:      .asciz "\n\r"
+str_hello:             .asciz "casinoboot stage1\n\r"
+str_err_no41:          .asciz "INT13h extensions not supported\n\r"
+str_err_diskread:      .asciz "disk read failed (might retry)\n\r"
+    .global str_newline
+str_newline:           .asciz "\n\r"
 
     .align 16
-hexprint_buffer:   .space 5
+hexprint_buffer:       .space 5
 
     .global dapack
     .align 16
@@ -100,5 +143,3 @@ dapack:
 .lba:
     .long 1
     .long 0
-
-

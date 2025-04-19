@@ -10,7 +10,7 @@ $(BUILD_DIR):
 $(BUILD_DIR)/stage1.o: stage1.s
 	as --32 $^ -o $@
 
-$(BUILD_DIR)/stage2.o: boot.s
+$(BUILD_DIR)/stage2.o: stage2.s
 	as --32 $^ -o $@
 
 $(BUILD_DIR)/boot.bin: $(BUILD_DIR)/stage1.o $(BUILD_DIR)/stage2.o

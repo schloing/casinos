@@ -17,14 +17,19 @@ SECTIONS
         SHORT(0xaa55);
     }
 
-    . = 0x7e01;
-    .stage2 : AT(0x7e01) SUBALIGN(4)
+    . = 0x7e00;
+    .stage2 : AT(0x7e00) SUBALIGN(4)
     {
         _sboot2 = .;
         build/stage2.o(.text)
         build/stage2.o(.data)
         build/stage2.o(.rodata*)
         _eboot2 = .;
+    }
+
+    . = 0x8000;
+    .signature2 : {
+        SHORT(0xaa55);
     }
 
     /DISCARD/ :
