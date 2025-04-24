@@ -23,11 +23,19 @@ SECTIONS
         _sboot2 = .;
         build/stage2.o(.text)
         build/stage2.o(.data)
-        build/stage2.o(.rodata*)
         _eboot2 = .;
     }
 
-    . = 0x8000;
+    .cboot : SUBALIGN(4)
+    {
+        _scboot = .;
+        build/cboot.o(.text)
+        build/cboot.o(.data)
+        build/cboot.o(.rodata*)
+        _ecboot = .;
+    }
+
+    . = 0x7ffe;
     .signature2 : {
         SHORT(0xaa55);
     }

@@ -1,4 +1,4 @@
-STAGE2_CC_ARGS := -g -fno-pic -fno-builtin -nostdlib -ffreestanding -std=gnu99 -m16 -march=i386 -e stage2_main 
+STAGE2_CC_ARGS := -fno-pic -fno-builtin -nostdlib -ffreestanding -std=gnu99 -m16 -march=i386
 BOOT_OBJDUMP_ARGS := -Maddr16,data16 -m i386 
 BUILD_DIR := build
 
@@ -13,7 +13,10 @@ $(BUILD_DIR)/stage1.o: stage1.s
 $(BUILD_DIR)/stage2.o: stage2.s
 	as --32 $^ -o $@
 
-$(BUILD_DIR)/boot.bin: $(BUILD_DIR)/stage1.o $(BUILD_DIR)/stage2.o
+$(BUILD_DIR)/cboot.o: cboot.c
+	gcc $(STAGE2_CC_ARGS) -c $^ -o $@
+
+$(BUILD_DIR)/boot.bin: $(BUILD_DIR)/stage1.o $(BUILD_DIR)/stage2.o $(BUILD_DIR)/cboot.o
 	ld -m elf_i386 -T boot.ld -o $@ $^
 
 $(BUILD_DIR)/diskimage.dd: $(BUILD_DIR)/boot.bin
@@ -39,7 +42,7 @@ dump: $(BUILD_DIR)/diskimage.dd
 	ls -la $^
 
 decompile: $(BUILD_DIR)/diskimage.dd
-	objdump -D -b binary -m i386 $^
+	objdump -D -b binary -m i386 -Maddr16,data16 $^
 
 clean: $(BUILD_DIR)
 	rm -rf $(BUILD_DIR)

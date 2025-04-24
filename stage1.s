@@ -106,6 +106,7 @@ load_stage2:
     cmpw $0xaa55, (%bx)
     je load_stage2.done
     inc %cx
+    jmp load_stage2
 load_stage2.done: 
     movw $0x7e00, %bx
     jmp *%bx
@@ -120,12 +121,6 @@ end:
     .global .drive
     .set .drive,       0x80
     .set .sector_size, 512
-
-str_hello:             .asciz "casinoboot stage1\n\r"
-str_err_no41:          .asciz "INT13h extensions not supported\n\r"
-str_err_diskread:      .asciz "disk read failed (might retry)\n\r"
-    .global str_newline
-str_newline:           .asciz "\n\r"
 
     .align 16
 hexprint_buffer:       .space 5
@@ -143,3 +138,9 @@ dapack:
 .lba:
     .long 1
     .long 0
+
+str_hello:             .asciz "casinoboot stage1\n\r"
+str_err_no41:          .asciz "INT13h extensions not supported\n\r"
+str_err_diskread:      .asciz "disk read failed (might retry)\n\r"
+    .global str_newline
+str_newline:           .asciz "\n\r"
