@@ -52,10 +52,20 @@ cpuid_supported:
 cpuid_supported.yes:
     movl $0, %eax               # vendor string
     cpuid
+    movl %ebx, cpuid_vendor_string
+    movl %edx, cpuid_vendor_string + 4
+    movl %ecx, cpuid_vendor_string + 8
 cpuid_supported.no:
+    
+    call cboot_main             # scram
 
-.extern cboot_main
-    call cboot_main
+    .data
+
+    .extern cboot_main
+
+    .global cpuid_vendor_string
+    .align 16
+cpuid_vendor_string:       .space 12
 
     .global gdt
 gdt:
@@ -63,7 +73,7 @@ gdt:
     .quad 0x00cf9a000000ffff
     .quad 0x00cf92000000ffff
 
-str_hello:    .asciz "casinoboot stage2\n\r"
-str_a20:      .asciz "a20 success\n\r"
-str_a20_fail: .asciz "a20 error. proceeding anyway\n\r"
-str_e820:     .asciz "e820 memory map loaded\n\r"
+str_hello:                 .asciz "casinoboot stage2\n\r"
+str_a20:                   .asciz "a20 success\n\r"
+str_a20_fail:              .asciz "a20 error. proceeding anyway\n\r"
+str_e820:                  .asciz "e820 memory map loaded\n\r"
