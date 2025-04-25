@@ -3,6 +3,24 @@
     
     jmp start_stage2
 
+cpuid_safe:
+    pusha
+    pushfl
+    pushfl
+    xorl $0x00200000, (%esp)
+    popfl
+    pushfl
+    pop %eax
+    xorl (%esp), %eax
+    popfl
+    andl $0x00200000, %eax
+    je cpuid_safe.no
+cpuid_safe.yes:
+    cpuid
+cpuid_safe.no:
+    popa
+    ret
+
 start_stage2:
     lea str_hello, %si
     call print
@@ -38,26 +56,16 @@ a20.failed:
     lea str_a20_fail, %si
 a20.finish:
 
-cpuid_supported:
-    pushfl
-    pushfl
-    xorl $0x00200000, (%esp)
-    popfl
-    pushfl
-    pop %eax
-    xorl (%esp), %eax
-    popfl
-    andl $0x00200000, %eax
-    je cpuid_supported.no
-cpuid_supported.yes:
     movl $0, %eax               # vendor string
-    cpuid
+    call cpuid_safe
     movl %ebx, cpuid_vendor_string
     movl %edx, cpuid_vendor_string + 4
     movl %ecx, cpuid_vendor_string + 8
-cpuid_supported.no:
-    
+    movl $1, %eax               # cpu features
+    call cpuid_safe
+
     call cboot_main             # scram
+    hlt
 
     .data
 
@@ -66,6 +74,14 @@ cpuid_supported.no:
     .global cpuid_vendor_string
     .align 16
 cpuid_vendor_string:       .space 12
+
+    .global cpuid_feat_edx
+    .align 16
+cpuid_feat_edx:            .space 32
+
+    .global cpuid_feat_ecx
+    .align 16
+cpuid_feat_ecx:            .space 32
 
     .global gdt
 gdt:

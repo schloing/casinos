@@ -1,5 +1,6 @@
 STAGE2_CC_ARGS := -fno-pic -fno-builtin -nostdlib -ffreestanding -std=gnu99 -m16 -march=i386
 BOOT_OBJDUMP_ARGS := -Maddr16,data16 -m i386 
+QEMU_CPU_FEATS := base,fpu,sse,sse2,sse3,monitor,cx8,aes
 BUILD_DIR := build
 
 default: $(BUILD_DIR) $(BUILD_DIR)/diskimage.dd
@@ -28,10 +29,10 @@ $(BUILD_DIR)/diskimage.dd: $(BUILD_DIR)/boot.bin
 all: $(BUILD_DIR) $(BUILD_DIR)/diskimage.dd
 
 run: $(BUILD_DIR)/diskimage.dd
-	qemu-system-i386 -display curses -hda $^
+	qemu-system-i386 -display curses -hda $^ -cpu $(QEMU_CPU_FEATS)
 
 remote: $(BUILD_DIR)/diskimage.dd
-	qemu-system-i386 -s -S -display curses -hda $^ 
+	qemu-system-i386 -s -S -display curses -hda $^ -cpu $(QEMU_CPU_FEATS)
 
 debug: $(BUILD_DIR)/diskimage.dd
 	gdb -ex "target remote localhost:1234"
