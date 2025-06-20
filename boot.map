@@ -1,0 +1,83 @@
+
+Discarded input sections
+
+ .bss           0x00000000        0x0 build/stage1.o
+ .bss           0x00000000        0x0 build/stage2.o
+ .bss           0x00000000        0x0 build/cboot.o
+ .comment       0x00000000       0x2c build/cboot.o
+ .note.GNU-stack
+                0x00000000        0x0 build/cboot.o
+ .eh_frame      0x00000000       0x78 build/cboot.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+                0x00000200                        SECTOR_SIZE = 0x200
+                0x00007c00                        STAGE1_VMA = 0x7c00
+                0x00000000                        STAGE1_LMA = 0x0
+                0x00007e00                        STAGE2_VMA = (STAGE1_VMA + SECTOR_SIZE)
+                0x00000200                        STAGE2_LMA = 0x200
+
+/DISCARD/
+ *(.bss)
+ *(.eh_frame)
+ *(.rela.eh_frame)
+ *(.comment)
+ *(.note.gnu.property)
+ *(.note.GNU-stack)
+ *(.dynamic)
+                0x00007c00                        . = STAGE1_VMA
+                0x00007c00                        _sboot = .
+
+.stage1         0x00007c00      0x200 load address 0x00000000
+ build/stage1.o(.text*)
+ .text          0x00007c00      0x200 build/stage1.o
+                0x00007c00                _start
+                0x00007c03                diskread
+                0x00007c2f                print
+                0x00007c48                hexprint
+                0x00007c8a                main
+                0x00007d10                dapack
+                0x00007d12                .sectors
+                0x00007d14                .transfer
+                0x00007d18                .lba
+                0x00007d77                str_newline
+ build/stage1.o(.data*)
+ .data          0x00007e00        0x0 build/stage1.o
+                0x00007e00                        _eboot = .
+                0x00000200                        _stage1_size = (_eboot - _sboot)
+                0x00007e00                        . = STAGE2_VMA
+                0x00007e00                        _sboot2 = .
+
+.stage2         0x00007e00      0x16e load address 0x00000200
+ build/stage2.o(.text*)
+ .text          0x00007e00       0xaa build/stage2.o
+ build/stage2.o(.data*)
+ *fill*         0x00007eaa        0x2 
+ .data          0x00007eac       0xc2 build/stage2.o
+                0x00007eac                cpuid_vendor_string
+                0x00007ebc                cpuid_feat_edx
+                0x00007edc                cpuid_feat_ecx
+                0x00007efc                gdt
+                0x00007f6e                        _eboot2 = .
+                0x0000016e                        _stage2_size = (_eboot2 - _sboot2)
+LOAD build/stage1.o
+LOAD build/stage2.o
+LOAD build/cboot.o
+OUTPUT(build/boot.bin binary)
+
+.text           0x00007f6e       0x82 load address 0x0000036e
+ .text          0x00007f6e       0x82 build/cboot.o
+                0x00007f6e                cboot_main
+                0x00007fb8                cprint
+                0x00007fd4                chexprint
+
+.rodata         0x00007ff0        0x8 load address 0x000003f0
+ .rodata        0x00007ff0        0x8 build/cboot.o
+
+.data           0x00007ff8        0x0 load address 0x000003f8
+ .data          0x00007ff8        0x0 build/cboot.o

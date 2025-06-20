@@ -15,3 +15,18 @@ osdev
 - https://osdev.wiki/wiki/CPUID
 - https://osdev.wiki/wiki/Model_Specific_Registers
 - https://osdev.wiki/wiki/PCI
+- https://web.archive.org/web/20240417190044/http://www.osdever.net/bkerndev/Docs/creatingmain.htm
+
+limine protocol
+- https://github.com/limine-bootloader/limine/blob/v9.x/stage1/hdd/bootsect.asm
+- https://github.com/limine-bootloader/limine/blob/v9.x/PROTOCOL.md
+- https://github.com/limine-bootloader/limine/blob/v9.x/limine.h
+
+notes
+- limine loads a decompressor alongside stage2
+- stage1 calls the decompressor (0x70000)
+- is stage2 compressed for disk space?
+- entry.asm in /decompressor jumps to start()
+- arguments to start (uint8_t *compressed_stage2, size_t stage2_size, uint8_t boot_drive, int pxe) were push'd in stage1
+- tinf decompresses stage2 into 0xf000
+

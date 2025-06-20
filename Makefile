@@ -18,7 +18,7 @@ $(BUILD_DIR)/cboot.o: cboot.c
 	gcc $(STAGE2_CC_ARGS) -c $^ -o $@
 
 $(BUILD_DIR)/boot.bin: $(BUILD_DIR)/stage1.o $(BUILD_DIR)/stage2.o $(BUILD_DIR)/cboot.o
-	ld -m elf_i386 -T boot.ld -o $@ $^
+	ld -m elf_i386 -T boot.ld -Map=boot.map -o $@ $^
 
 $(BUILD_DIR)/diskimage.dd: $(BUILD_DIR)/boot.bin
 	dd if=/dev/zero of=$@ bs=1048576 count=16
