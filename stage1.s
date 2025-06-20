@@ -1,123 +1,164 @@
     .text
     .code16
+    .att_syntax noprefix
 
-call _start
+    .global _start
+_start:
+    call main
 
     .global diskread
     .type   diskread, @function
 diskread:
-    pusha
-    movw $5, %cx
+    push %ax
+    push %cx
+    push %dx
+    push %si
+
+    mov $5, %cx
 diskread.attempt:
     cmp $0, %cx
     je diskread.done
-    movb $0x42, %ah
+    mov $0x42, %ah
     lea dapack, %si
-    movb $.drive, %dl
+    mov $.drive, %dl
     int $0x13
     jc diskread.failed
     jmp diskread.done
 diskread.failed:
     dec %cx
-    lea str_err_diskread, %si
+    push $str_err_diskread
     call print
+    add $2, %sp
 diskread.done:
-    popa
+    pop %ax
+    pop %cx
+    pop %dx
+    pop %si
+    mov %bp, %sp
+    pop %bp
     ret
 
     .global print
     .type   print, @function
 print:
-    pusha
+    push %bp
+    mov %sp, %bp
+    push %ax
+    push %si
+
     mov $0x0e, %ah
+    mov 4(%bp), %si
 print.next:
     lodsb
-    testb %al, %al
+    test %al, %al
     je print.done
     int $0x10
     jmp print.next
 print.done:
-    popa
+    pop %ax
+    pop %si
+    mov %bp, %sp
+    pop %bp
     ret
 
     .global hexprint
     .type   hexprint, @function
 hexprint:
-    pusha
-    movw %ax, %bx
-    movw $hexprint_buffer, %di
-    movb $4, %cl
+    push %bp
+    mov %sp, %bp
+    push %ax
+    push %bx
+    push %cx
+    push %di
+
+    mov 4(%bp), %bx
+    mov $hexprint_buffer, %di
+    mov $4, %cl
 hexprint.next:
     rolw $4, %bx
-    movb %bl, %al
-    andb $0x0F, %al
-    cmpb $10, %al
+    mov %bl, %al
+    and $0x0F, %al
+    cmp $10, %al
     jl hexprint.number
-    addb $'A' - 10, %al
+    add $'A' - 10, %al
     jmp hexprint.done
 hexprint.number:
-    addb $'0', %al
+    add $'0', %al
 hexprint.done:
     stosb
-    decb %cl
+    dec %cl
     jnz hexprint.next
-    movb $0, %al
+    mov $0, %al
     stosb
-    lea hexprint_buffer, %si
+    
+    push $hexprint_buffer
     call print
-    lea str_newline, %si
+    add $2, %sp
+
+    push $hexprint_buffer
     call print
-    popa
+    add $2, %sp
+
+    pop %ax
+    pop %bx
+    pop %cx
+    pop %dx
+    mov %bp, %sp
+    pop %bp
     ret
 
-    .global _start
-    .type   _start, @function
-_start:
-    lea str_hello, %si
-    call print
-
+    .global main
+    .type   main, @function
+main:
     cli
     ljmp $0x0000, $.initcs
 .initcs:
-    xorw %ax, %ax
-    movw %ax, %ds
-    movw %ax, %es
-    movw %ax, %ss
-    movw $0x7c00, %sp
-    movw %bp, %sp
+    xor %ax, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %ss
+    mov $0x7c00, %sp
+    mov %sp, %bp
     sti
 
-    movb $0x41, %ah
-    movw $0x55aa, %bx
-    movb $.drive, %dl
+    push $str_hello
+    call print
+    add $2, %sp
+
+    mov $0x41, %ah
+    mov $0x55aa, %bx
+    mov $.drive, %dl
     int $0x13
     jc end
 
-    movw $1, .sectors
-    movw $1, %cx                # lba 0 is bootloader so start at 1
-    movw $0x7e00 - 512, %ax
 load_stage2:
-    addw $.sector_size, %ax
-    movw %cx, .lba
-    movw %ax, .transfer
+    mov $0x66, %ax
+    mov $_stage2_size, %eax
+    mov $512, %ecx
+    xor %edx, %edx
+    div %ecx                # quotient -> eax, remainder -> edx
+    mov %eax, .sectors
+    test %edx, %edx
+    je load_stage2.exact
+    incw .sectors
+load_stage2.exact:
+    movw $1, .lba
+    movw $0x7e00, .transfer
     call diskread
-    movw %ax, %bx
-    addw $510, %bx
-    cmpw $0xaa55, (%bx)
-    je load_stage2.done
-    inc %cx
-    jmp load_stage2
 load_stage2.done: 
-    movw $0x7e00, %bx
+    mov $0x7e00, %bx
     jmp *%bx
 
 end:
-    lea str_err_no41, %si
+    push $str_err_no41
     call print
+    add $2, %sp
+
     hlt
     ret
 
-    .data
+    .extern _stage2_size
+
     .global .drive
     .set .drive,       0x80
     .set .sector_size, 512
@@ -126,6 +167,9 @@ end:
 hexprint_buffer:       .space 5
 
     .global dapack
+    .global .sectors
+    .global .transfer
+    .global .lba
     .align 16
 dapack:
     .byte 0x10
@@ -144,3 +188,6 @@ str_err_no41:          .asciz "INT13h extensions not supported\n\r"
 str_err_diskread:      .asciz "disk read failed (might retry)\n\r"
     .global str_newline
 str_newline:           .asciz "\n\r"
+
+.fill 510 - (. - _start), 1, 0
+.word 0xaa55

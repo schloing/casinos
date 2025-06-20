@@ -64,12 +64,33 @@ a20.finish:
     movl $1, %eax               # cpu features
     call cpuid_safe
 
-    call cboot_main             # scram
-    hlt
+    movl $cpuid_feat_edx, %edx
+    movl $cpuid_feat_ecx, %ecx
+
+// load_cboot:                     # FIXME: repeated code
+//     movw $0x66, %ax
+//     movw $_cboot_lba, .lba
+//     movw $_scboot, .transfer
+//     movw $_cboot_size_sectors, .sectors
+//     call diskread               # read into memory address in .transfer
+// load_cboot.done: 
+//     call cboot_main             # scram
+//     hlt
 
     .data
 
-    .extern cboot_main
+#   dapack from stage1
+    .extern .transfer
+    .extern .sectors
+    .extern .lba
+
+// #   linker variables
+//     .extern _scboot
+//     .extern _cboot_size_sectors
+//     .extern _cboot_lba
+
+// #   cboot
+//     .extern cboot_main
 
     .global cpuid_vendor_string
     .align 16
