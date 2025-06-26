@@ -27,6 +27,7 @@ SECTIONS
     {
         build/stage1.o(.text*)
         build/stage1.o(.data*)
+        build/stage1.o(.rodata*)
     }
         _eboot = .;
         _stage1_size = _eboot - _sboot;
@@ -37,7 +38,16 @@ SECTIONS
     {
         build/stage2.o(.text*)
         build/stage2.o(.data*)
+        build/stage2.o(.rodata*)
     }
         _eboot2 = .;
         _stage2_size = _eboot2 - _sboot2;
+
+    . = STAGE2_VMA + _stage2_size;
+    .cboot : AT(STAGE2_LMA + _stage2_size) SUBALIGN(4)
+    {
+        build/cboot.o(.text*)
+        build/cboot.o(.data*)
+        build/cboot.o(.rodata*)
+    }
 }

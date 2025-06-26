@@ -1,14 +1,16 @@
-    .text
+    .section .text
     .code16
+    .global _start
     .att_syntax noprefix
 
-    .global _start
 _start:
     call main
 
     .global diskread
     .type   diskread, @function
 diskread:
+    push %bp
+    mov %sp, %bp
     push %ax
     push %cx
     push %dx
@@ -90,7 +92,7 @@ hexprint.done:
     jnz hexprint.next
     mov $0, %al
     stosb
-    
+ 
     push $hexprint_buffer
     call print
     add $2, %sp
@@ -107,12 +109,10 @@ hexprint.done:
     pop %bp
     ret
 
-    .global main
-    .type   main, @function
 main:
     cli
-    ljmp $0x0000, $.initcs
-.initcs:
+    ljmp $0x0000, $initcs
+initcs:
     xor %ax, %ax
     mov %ax, %ds
     mov %ax, %es
@@ -125,6 +125,18 @@ main:
     call print
     add $2, %sp
 
+    cmp $0x80, %dl
+    je hdd_boot
+    push $str_not_hdd
+    call print
+    add $2, %sp
+    hlt
+
+hdd_boot:
+    push $str_hdd
+    call print
+    add $2, %sp
+
     mov $0x41, %ah
     mov $0x55aa, %bx
     mov $.drive, %dl
@@ -132,39 +144,29 @@ main:
     jc end
 
 load_stage2:
-    mov $0x66, %ax
-    mov $_stage2_size, %eax
-    mov $512, %ecx
-    xor %edx, %edx
-    div %ecx                # quotient -> eax, remainder -> edx
-    mov %eax, .sectors
-    test %edx, %edx
-    je load_stage2.exact
-    incw .sectors
-load_stage2.exact:
+    movw $1, .sectors
     movw $1, .lba
     movw $0x7e00, .transfer
     call diskread
+
 load_stage2.done: 
     mov $0x7e00, %bx
     jmp *%bx
+    hlt
 
 end:
     push $str_err_no41
     call print
     add $2, %sp
-
     hlt
     ret
 
-    .extern _stage2_size
+#   .section .data
+    .align 16
+hexprint_buffer:       .space 5
 
     .global .drive
     .set .drive,       0x80
-    .set .sector_size, 512
-
-    .align 16
-hexprint_buffer:       .space 5
 
     .global dapack
     .global .sectors
@@ -184,10 +186,10 @@ dapack:
     .long 0
 
 str_hello:             .asciz "casinoboot stage1\n\r"
-str_err_no41:          .asciz "INT13h extensions not supported\n\r"
+str_not_hdd:           .asciz "not booting from hard drive (not supported)\n\r"
+str_hdd:               .asciz "booting from hard drive\n\r"
+str_err_no41:          .asciz "INT13h extensions error (not supported)\n\r"
 str_err_diskread:      .asciz "disk read failed (might retry)\n\r"
-    .global str_newline
-str_newline:           .asciz "\n\r"
 
 .fill 510 - (. - _start), 1, 0
 .word 0xaa55
