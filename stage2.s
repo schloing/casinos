@@ -1,7 +1,8 @@
-    .text
+    .section .text
     .code16
-    
-    jmp start_stage2
+
+_start_stage2:
+    call stage2
 
 cpuid_safe:
     pusha
@@ -17,13 +18,22 @@ cpuid_safe:
     je cpuid_safe.no
 cpuid_safe.yes:
     cpuid
+    push $str_cpuid
+    call print
+    add $2, %sp
+    jmp cpuid_safe.done
 cpuid_safe.no:
-    popa
+    push $str_cpuid_fail
+    call print
+    add $2, %sp
+cpuid_safe.done:
+    popa 
     ret
 
-start_stage2:
-    lea str_hello, %si
+stage2:
+    push $str_hello
     call print
+    add $2, %sp
 
 .macro macro_a20_check
     mov $0x112345, %edi
@@ -51,10 +61,14 @@ a20.no92:
 a20.recheck:
     macro_a20_check
     je a20.finish
-    lea str_a20, %si
 a20.failed:
-    lea str_a20_fail, %si
+    push $str_a20_fail
+    call print                  # will continue to print success
+    add $2, %sp
 a20.finish:
+    push $str_a20
+    call print
+    add $2, %sp
 
     movl $0, %eax               # vendor string
     call cpuid_safe
@@ -67,30 +81,16 @@ a20.finish:
     movl $cpuid_feat_edx, %edx
     movl $cpuid_feat_ecx, %ecx
 
-// load_cboot:                     # FIXME: repeated code
-//     movw $0x66, %ax
-//     movw $_cboot_lba, .lba
-//     movw $_scboot, .transfer
-//     movw $_cboot_size_sectors, .sectors
-//     call diskread               # read into memory address in .transfer
-// load_cboot.done: 
-//     call cboot_main             # scram
-//     hlt
-
-    .data
+    call cboot_main
+    hlt
+hang:
+    jmp hang
 
 #   dapack from stage1
+    .extern cboot_main
     .extern .transfer
     .extern .sectors
     .extern .lba
-
-// #   linker variables
-//     .extern _scboot
-//     .extern _cboot_size_sectors
-//     .extern _cboot_lba
-
-// #   cboot
-//     .extern cboot_main
 
     .global cpuid_vendor_string
     .align 16
@@ -111,6 +111,7 @@ gdt:
     .quad 0x00cf92000000ffff
 
 str_hello:                 .asciz "casinoboot stage2\n\r"
+str_cpuid:                 .asciz "cpuid call success\n\r"
+str_cpuid_fail:            .asciz "cpuid call error\n\r"
 str_a20:                   .asciz "a20 success\n\r"
 str_a20_fail:              .asciz "a20 error. proceeding anyway\n\r"
-str_e820:                  .asciz "e820 memory map loaded\n\r"

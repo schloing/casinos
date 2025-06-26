@@ -1,38 +1,15 @@
-extern void print(void);
-extern void hexprint(void);
-extern void diskread(void);
+#define cdecl __attribute__((cdecl))
+extern void print(const unsigned char* str) cdecl;
+extern void hexprint(const unsigned short n) cdecl;
+extern void diskread(void) cdecl;
 extern char cpuid_vendor_string[12];
 extern int cpuid_feat_edx;
 extern int cpuid_feat_ecx;
-void cprint(const char* string);
-void chexprint(const int hex);
 
-void cboot_main()
+void cboot_main(void)
 {
-    cprint("cboot\r\n");
-    chexprint(cpuid_feat_edx);
-    chexprint(cpuid_feat_ecx);
+    print("cboot\r\n");
+//  hexprint(cpuid_feat_edx);
+//  hexprint(cpuid_feat_ecx);
     return;
-}
-
-void cprint(const char* string) {
-    __asm__ volatile
-        (
-         "lea (%0), %%si"
-         : /* no */
-         : "r" (string)
-        );
-
-    print();
-}
-
-void chexprint(const int hex) {
-    __asm__ volatile
-        (
-         "mov (%0), %%di"
-         : /* no */
-         : "r" (hex)
-        );
-
-    hexprint();
 }

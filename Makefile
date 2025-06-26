@@ -1,4 +1,4 @@
-STAGE2_CC_ARGS := -fno-pic -fno-builtin -nostdlib -ffreestanding -std=gnu99 -m16 -march=i386
+STAGE2_CC_ARGS := -fno-pic -fno-builtin -ffreestanding -std=gnu99 -m16 -march=i386 -nostdinc -nostdlib 
 BOOT_OBJDUMP_ARGS := -Maddr16,data16 -m i386 
 QEMU_CPU_FEATS := base,fpu,sse,sse2,sse3,monitor,cx8,aes
 BUILD_DIR := build
