@@ -146,12 +146,13 @@ hdd_boot:
 load_stage2:
     movw $1, .sectors
     movw $1, .lba
-    movw $0x7e00, .transfer
+    movw $_sentry, .transfer
     call diskread
 
-load_stage2.done: 
-    mov $0x7e00, %bx
-    jmp *%bx
+load_stage2.done:
+    push $_sstage2
+    push $_stage2_size
+    call entry
     hlt
 
 end:
@@ -162,6 +163,12 @@ end:
     ret
 
 #   .section .data
+
+    .extern _sentry
+    .extern _sstage2
+    .extern _stage2_size
+    .extern entry
+
     .align 16
 hexprint_buffer:       .space 5
 
@@ -169,9 +176,6 @@ hexprint_buffer:       .space 5
     .set .drive,       0x80
 
     .global dapack
-    .global .sectors
-    .global .transfer
-    .global .lba
     .align 16
 dapack:
     .byte 0x10
