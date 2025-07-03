@@ -1,8 +1,6 @@
-SECTOR_SIZE     = 0x200;
-STAGE1_VMA      = 0x7c00;
-STAGE1_LMA      = 0;
-STAGE2_VMA      = STAGE1_VMA + SECTOR_SIZE;
-STAGE2_LMA      = 0x200;
+SECTOR_SIZE       = 0x200;
+STAGE1_VMA        = 0x7c00;
+STAGE1_LMA        = 0;
 
 ENTRY(_start)
 OUTPUT_FORMAT(binary)
@@ -32,22 +30,23 @@ SECTIONS
         _eboot = .;
         _stage1_size = _eboot - _sboot;
 
-    . = STAGE2_VMA;
-        _sboot2 = .;
-    .stage2 : AT(STAGE2_LMA) SUBALIGN(4)
+    . = STAGE1_VMA + _stage1_size;
+        _sentry = .;
+    .entry : AT(STAGE1_LMA + _stage1_size) SUBALIGN(4)
     {
-        build/stage2.o(.text*)
-        build/stage2.o(.data*)
-        build/stage2.o(.rodata*)
+        build/entry.o(.text .data .rodata)
+        bin/tinflate.o(.text .data .rodata)
+        bin/crc32.o(.text .data .rodata)
+        bin/tinfgzip.o(.text .data .rodata)
     }
-        _eboot2 = .;
-        _stage2_size = _eboot2 - _sboot2;
+        _eentry = .;
+        _entry_size = _eentry - _sentry;
 
-    . = STAGE2_VMA + _stage2_size;
-    .cboot : AT(STAGE2_LMA + _stage2_size) SUBALIGN(4)
+        _sstage2 = .;
+    .stage2 :
     {
-        build/cboot.o(.text*)
-        build/cboot.o(.data*)
-        build/cboot.o(.rodata*)
+        build/stage2.bin.o(.data)
     }
+        _estage2 = .;
+        _stage2_size = _estage2 - _sstage2;
 }

@@ -29,4 +29,3 @@ notes
 - entry.asm in /decompressor jumps to start()
 - arguments to start (uint8_t *compressed_stage2, size_t stage2_size, uint8_t boot_drive, int pxe) were push'd in stage1
 - tinf decompresses stage2 into 0xf000
-
