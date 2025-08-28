@@ -1,10 +1,8 @@
-    .section .text
-    .code16
-    .global _stage2_start
-    .att_syntax noprefix
-
-_stage2_start:
-    call stage2_main
-    hlt
-
-.extern stage2_main
+    format elf              ; elf32
+    org 0x10000
+    section '.text' writeable executable
+    use32
+_start:
+    extrn main_32
+    call main_32
+    jmp $

@@ -1,136 +1,168 @@
-    .code16
-    .global _start
-    .att_syntax noprefix
-
-    .section .text
-
+    format binary
+    org 0x7c00
+    use16
 _start:
     call main
 
-    .global diskread
-    .type   diskread, @function
 diskread:
-    push %bp
-    mov %sp, %bp
-    push %ax
-    push %cx
-    push %dx
-    push %si
-
-    mov $5, %cx
-diskread.attempt:
-    cmp $0, %cx
-    je diskread.done
-    mov $0x42, %ah
-    lea dapack, %si
-    mov $DRIVE, %dl
-    int $0x13
-    jc diskread.failed
-    jmp diskread.done
-diskread.failed:
-    dec %cx
-diskread.done:
-    pop %ax
-    pop %cx
-    pop %dx
-    pop %si
-    mov %bp, %sp
-    pop %bp
+    mov cx, 5                   ; retry counter
+.attempt:
+    cmp cx, 0
+    je .done
+    mov ah, 0x42                ; extended read
+    lea si, [dapack]
+    mov dl, bootdrive
+    int 0x13
+    jc .failed
+    jmp .done
+.failed:
+    dec cx
+    jmp .attempt
+.done:
     ret
 
-main:
+memmap_amt_ent equ 0x8000
+
+memory_map_e820:
+    mov di, memmap_addr
+    xor ebx, ebx
+    xor bp, bp
+    mov edx, 0x0534d4150
+    mov eax, 0xe820
+    mov [es:di + 20], dword 1
+    mov ecx, 24
+    int 0x15
+    jc .failed
+    test ebx, ebx
+    je .failed
+.loop:
+    mov eax, 0xe820
+    mov edx, 0x0534D4150
+    mov [es:di + 20], dword 1
+    mov ecx, 24
+    int 0x15
+    jc .failed
+    cmp cl, 20
+    jb .notext
+	test byte [es:di + 20], 1
+	je .skipent
+.notext:
+    mov ecx, [es:di + 8]
+	or ecx, [es:di + 12]
+	jz .skipent
+	inc bp
+	add di, 24
+.skipent:
+    test ebx, ebx
+    jne .loop
+.done:
+    mov [es:memmap_amt_ent], bp
+    clc
+    ret
+.failed:
+    stc
+    ret
+
+main:                           ; noreturn
     cli
-    ljmp $0x0000, $initcs
-initcs:
-    xor %ax, %ax
-    mov %ax, %ds
-    mov %ax, %es
-    mov %ax, %ss
-    mov $0x7c00, %sp
-    mov %sp, %bp
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+   
+    mov ax, 0x9000
+    mov ss, ax
+    mov sp, 0xffff
     sti
 
-    cmp $0x80, %dl
+    cmp dl, bootdrive
+    mov [bootdrive], dl
     je hdd_boot
-    hlt
+    jmp $                       ; no floppies allowed
 
 hdd_boot:
-    mov $0x41, %ah
-    mov $0x55aa, %bx
-    mov $DRIVE, %dl
-    int $0x13
-    jc end
+    mov ah, 0x41
+    mov bx, 0x55aa
+    mov dl, bootdrive
+    int 0x13
+    cmp bx, 0xaa55
+    je load_stage2
+    jmp $                       ; no edd
 
 load_stage2:
-    movw $10, .sectors
-    movw $1, .lba
-    movw $_sentry, .transfer
-    call diskread
+    call memory_map_e820
+
+    mov word [dapack.sectors], 10
+    mov word [dapack.lba], 1
+    mov word [dapack.segment], 0x1000
+    mov word [dapack.offset], 0
+    call diskread               ; stage 2 -> 0x10000
 
 load_gdt:
     cli
-	lgdt (gdtr)
-    mov %cr0, %eax
-    or $1, %eax
-    mov %eax, %cr0
+    lgdt [gdtr]
 
-    movw $0x10, %ax
-    movw %ax, %ds
-    movw %ax, %es
-    movw %ax, %fs
-    movw %ax, %gs
-    movw %ax, %ss
-    ljmp $0x08, $load_gdt.setcs
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
 
-    .code32
-load_gdt.setcs:
-    call main_32
-    hlt # noreturn
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    mov esp, 0x90000
 
-    .extern main_32
+    jmp 0x08:load_gdt_setcs
 
-    .section .data
+    use32
+load_gdt_setcs:
+    call 0x10000
+    jmp $
 
-    .set DRIVE, 0x80
+    ; data
+bootdrive = 0x80
+memmap_addr = 0x8004
 
 gdt_start:
-    .long 0x0
-    .long 0x0
+    dq 0x0000000000000000
 
 gdt_code:
-    .word 0xffff
-    .word 0x0
-    .byte 0x0
-    .byte 0b10011010
-    .byte 0b11001111
-    .byte 0x0
+    dw 0xffff
+    dw 0x0000
+    db 0x00
+    db 10011010b
+    db 11001111b
+    db 0x00
 
 gdt_data:
-    .word 0xffff
-    .word 0x0
-    .byte 0x0
-    .byte 0b10010010
-    .byte 0b11001111
-    .byte 0x0
+    dw 0xffff
+    dw 0x0000
+    db 0x00
+    db 10010010b
+    db 11001111b
+    db 0x00
+
 gdt_end:
-    .global gdtr
+
 gdtr:
-    .word (gdt_end - gdt_start - 1)
-    .long gdt_start
+    dw gdt_end - gdt_start - 1
+    dd gdt_start
 
-    .global dapack
-    .align 16
+    align 16
 dapack:
-    .byte 0x10
-    .byte 0
+    db 0x10
+    db 0x00
 .sectors:
-    .short 1
-.transfer:
-    .word 0x7e00
-    .word 0
+    dw 1
+.offset:
+    dw 0x7e00
+.segment:
+    dw 0
 .lba:
-    .long 1
-    .long 0
+    dd 1, 0
 
-.fill 510 - (. - _start), 1, 0
-.word 0xaa55
+times 510-($-$$) db 0
+dw 0xaa55

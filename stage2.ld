@@ -1,5 +1,3 @@
-STAGE2_VMA  = 0x10000;
-
 OUTPUT_FORMAT(binary)
 OUTPUT_ARCH(i386)
 
@@ -16,10 +14,10 @@ SECTIONS
         *(.dynamic)
     }
 
-    . = STAGE2_VMA;
-    .stage2 : SUBALIGN(4)
+    . = 0x10000;
+    .text : SUBALIGN(4)
     {
-        build/stage2_entry.o(.text)
-        build/stage2.o(.text .data .rodata)
+        build/stage2_entry.elf(.*)
+        build/stage2.elf(.*)
     }
 }
