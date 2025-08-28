@@ -1,7 +1,8 @@
-    .section .text
     .code16
     .global _start
     .att_syntax noprefix
+
+    .section .text
 
 _start:
     call main
@@ -22,89 +23,17 @@ diskread.attempt:
     je diskread.done
     mov $0x42, %ah
     lea dapack, %si
-    mov $.drive, %dl
+    mov $DRIVE, %dl
     int $0x13
     jc diskread.failed
     jmp diskread.done
 diskread.failed:
     dec %cx
-    push $str_err_diskread
-    call print
-    add $2, %sp
 diskread.done:
     pop %ax
     pop %cx
     pop %dx
     pop %si
-    mov %bp, %sp
-    pop %bp
-    ret
-
-    .global print
-    .type   print, @function
-print:
-    push %bp
-    mov %sp, %bp
-    push %ax
-    push %si
-
-    mov $0x0e, %ah
-    mov 4(%bp), %si
-print.next:
-    lodsb
-    test %al, %al
-    je print.done
-    int $0x10
-    jmp print.next
-print.done:
-    pop %ax
-    pop %si
-    mov %bp, %sp
-    pop %bp
-    ret
-
-    .global hexprint
-    .type   hexprint, @function
-hexprint:
-    push %bp
-    mov %sp, %bp
-    push %ax
-    push %bx
-    push %cx
-    push %di
-
-    mov 4(%bp), %bx
-    mov $hexprint_buffer, %di
-    mov $4, %cl
-hexprint.next:
-    rolw $4, %bx
-    mov %bl, %al
-    and $0x0F, %al
-    cmp $10, %al
-    jl hexprint.number
-    add $'A' - 10, %al
-    jmp hexprint.done
-hexprint.number:
-    add $'0', %al
-hexprint.done:
-    stosb
-    dec %cl
-    jnz hexprint.next
-    mov $0, %al
-    stosb
- 
-    push $hexprint_buffer
-    call print
-    add $2, %sp
-
-    push $hexprint_buffer
-    call print
-    add $2, %sp
-
-    pop %ax
-    pop %bx
-    pop %cx
-    pop %dx
     mov %bp, %sp
     pop %bp
     ret
@@ -121,59 +50,73 @@ initcs:
     mov %sp, %bp
     sti
 
-    push $str_hello
-    call print
-    add $2, %sp
-
     cmp $0x80, %dl
     je hdd_boot
-    push $str_not_hdd
-    call print
-    add $2, %sp
     hlt
 
 hdd_boot:
-    push $str_hdd
-    call print
-    add $2, %sp
-
     mov $0x41, %ah
     mov $0x55aa, %bx
-    mov $.drive, %dl
+    mov $DRIVE, %dl
     int $0x13
     jc end
 
 load_stage2:
-    movw $1, .sectors
+    movw $10, .sectors
     movw $1, .lba
     movw $_sentry, .transfer
     call diskread
 
-load_stage2.done:
-    push $_sstage2
-    push $_stage2_size
-    call entry
-    hlt
+load_gdt:
+    cli
+	lgdt (gdtr)
+    mov %cr0, %eax
+    or $1, %eax
+    mov %eax, %cr0
 
-end:
-    push $str_err_no41
-    call print
-    add $2, %sp
-    hlt
-    ret
+    movw $0x10, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+    movw %ax, %ss
+    ljmp $0x08, $load_gdt.setcs
 
-#   .section .data
+    .code32
+load_gdt.setcs:
+    call main_32
+    hlt # noreturn
 
-    .extern _sentry
-    .extern _sstage2
-    .extern _stage2_size
-    .extern entry
+    .extern main_32
 
-    .align 16
-hexprint_buffer:       .space 5
+    .section .data
 
-    .global .drive
-    .set .drive,       0x80
+    .set DRIVE, 0x80
+
+gdt_start:
+    .long 0x0
+    .long 0x0
+
+gdt_code:
+    .word 0xffff
+    .word 0x0
+    .byte 0x0
+    .byte 0b10011010
+    .byte 0b11001111
+    .byte 0x0
+
+gdt_data:
+    .word 0xffff
+    .word 0x0
+    .byte 0x0
+    .byte 0b10010010
+    .byte 0b11001111
+    .byte 0x0
+gdt_end:
+    .global gdtr
+gdtr:
+    .word (gdt_end - gdt_start - 1)
+    .long gdt_start
 
     .global dapack
     .align 16
@@ -188,12 +131,6 @@ dapack:
 .lba:
     .long 1
     .long 0
-
-str_hello:             .asciz "casinoboot stage1\n\r"
-str_not_hdd:           .asciz "not booting from hard drive (not supported)\n\r"
-str_hdd:               .asciz "booting from hard drive\n\r"
-str_err_no41:          .asciz "INT13h extensions error (not supported)\n\r"
-str_err_diskread:      .asciz "disk read failed (might retry)\n\r"
 
 .fill 510 - (. - _start), 1, 0
 .word 0xaa55

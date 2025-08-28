@@ -1,0 +1,22 @@
+megs: 32
+romimage: file=/usr/share/seabios/bios.bin, address=0xfffe0000
+vgaromimage: file=/usr/share/seabios/vgabios-bochs-display.bin
+
+ata0-master: type=disk, path="build/diskimage.dd", cylinders=32, heads=16, spt=63, status=inserted
+boot: disk
+
+display_library: sdl2, options="gui_debug"
+magic_break: enabled=1
+
+log: bochsout.txt
+panic: action=ask
+error: action=report
+info: action=report
+
+keyboard: type=mf, serial_delay=250, paste_delay=100000
+cpu: ips=1000000
+mouse: enabled=0
+private_colormap: enabled=0
+fullscreen: enabled=0
+screenmode: name="sample"
+magic_break: enabled=1

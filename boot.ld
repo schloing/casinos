@@ -23,27 +23,22 @@ SECTIONS
         _sboot = .;
     .stage1 : AT(STAGE1_LMA) SUBALIGN(4)
     {
-        build/stage1.o(.text*)
-        build/stage1.o(.data*)
-        build/stage1.o(.rodata*)
+        build/stage1.o(.text .data .rodata)
     }
         _eboot = .;
         _stage1_size = _eboot - _sboot;
 
     . = STAGE1_VMA + _stage1_size;
         _sentry = .;
-    .entry : AT(STAGE1_LMA + _stage1_size) SUBALIGN(4)
+    .decompress : AT(STAGE1_LMA + _stage1_size) SUBALIGN(4)
     {
-        build/entry.o(.text .data .rodata)
-        bin/tinflate.o(.text .data .rodata)
-        bin/crc32.o(.text .data .rodata)
-        bin/tinfgzip.o(.text .data .rodata)
+        build/decompress.o(.text .data .rodata)
     }
         _eentry = .;
         _entry_size = _eentry - _sentry;
 
         _sstage2 = .;
-    .stage2 :
+    .stage2 : AT(STAGE1_LMA + _stage1_size + _entry_size) SUBALIGN(4)
     {
         build/stage2.bin.o(.data)
     }

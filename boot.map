@@ -2,26 +2,6 @@
 Discarded input sections
 
  .bss           0x00000000        0x0 build/stage1.o
- .bss           0x00000000        0x0 build/entry.o
- .comment       0x00000000       0x2c build/entry.o
- .note.GNU-stack
-                0x00000000        0x0 build/entry.o
- .eh_frame      0x00000000       0x54 build/entry.o
- .bss           0x00000000        0x0 bin/tinflate.o
- .comment       0x00000000       0x2c bin/tinflate.o
- .note.GNU-stack
-                0x00000000        0x0 bin/tinflate.o
- .eh_frame      0x00000000      0x204 bin/tinflate.o
- .bss           0x00000000        0x0 bin/crc32.o
- .comment       0x00000000       0x2c bin/crc32.o
- .note.GNU-stack
-                0x00000000        0x0 bin/crc32.o
- .eh_frame      0x00000000       0x38 bin/crc32.o
- .bss           0x00000000        0x0 bin/tinfgzip.o
- .comment       0x00000000       0x2c bin/tinfgzip.o
- .note.GNU-stack
-                0x00000000        0x0 bin/tinfgzip.o
- .eh_frame      0x00000000       0x78 bin/tinfgzip.o
 
 Memory Configuration
 
@@ -31,10 +11,7 @@ Name             Origin             Length             Attributes
 Linker script and memory map
 
 LOAD build/stage1.o
-LOAD build/entry.o
-LOAD bin/tinflate.o
-LOAD bin/crc32.o
-LOAD bin/tinfgzip.o
+LOAD build/decompress.o
 LOAD build/stage2.bin.o
                 0x00000200                        SECTOR_SIZE = 0x200
                 0x00007c00                        STAGE1_VMA = 0x7c00
@@ -52,55 +29,40 @@ LOAD build/stage2.bin.o
                 0x00007c00                        _sboot = .
 
 .stage1         0x00007c00      0x200 load address 0x00000000
- build/stage1.o(.text*)
+ build/stage1.o(.text .data .rodata)
  .text          0x00007c00      0x200 build/stage1.o
                 0x00007c00                _start
                 0x00007c03                diskread
-                0x00007c32                print
-                0x00007c4b                hexprint
-                0x00007d10                dapack
- build/stage1.o(.data*)
+                0x00007cb4                gdtr
+                0x00007cc0                dapack
  .data          0x00007e00        0x0 build/stage1.o
- build/stage1.o(.rodata*)
                 0x00007e00                        _eboot = .
                 0x00000200                        _stage1_size = (_eboot - _sboot)
                 0x00007e00                        . = (STAGE1_VMA + _stage1_size)
                 0x00007e00                        _sentry = .
 
-.entry          0x00007e00     0x158c load address 0x00000200
- build/entry.o(.text .data .rodata)
- .text          0x00007e00       0x9c build/entry.o
-                0x00007e00                printx
-                0x00007e3d                entry
- .data          0x00007e9c        0x0 build/entry.o
- .rodata        0x00007e9c       0x1a build/entry.o
- bin/tinflate.o(.text .data .rodata)
- *fill*         0x00007eb6        0x2 
- .text          0x00007eb8      0xf81 bin/tinflate.o
-                0x00008c98                tinf_init
-                0x00008ca2                tinf_uncompress
- *fill*         0x00008e39        0x3 
- .data          0x00008e3c        0x0 bin/tinflate.o
- .rodata        0x00008e3c       0xda bin/tinflate.o
- bin/crc32.o(.text .data .rodata)
- *fill*         0x00008f16        0x2 
- .text          0x00008f18       0xb4 bin/crc32.o
-                0x00008f18                tinf_crc32
- .data          0x00008fcc        0x0 bin/crc32.o
- .rodata        0x00008fcc       0x40 bin/crc32.o
- bin/tinfgzip.o(.text .data .rodata)
- .text          0x0000900c      0x380 bin/tinfgzip.o
-                0x0000908e                tinf_gzip_uncompress
- .data          0x0000938c        0x0 bin/tinfgzip.o
-                0x0000938c                        _eentry = .
-                0x0000158c                        _entry_size = (_eentry - _sentry)
-                0x0000938c                        _sstage2 = .
+.decompress     0x00007e00     0x15a1 load address 0x00000200
+ build/decompress.o(.text .data .rodata)
+ .text          0x00007e00     0x1472 build/decompress.o
+                0x00008be0                tinf_init
+                0x00008bea                tinf_uncompress
+                0x00008d84                tinf_crc32
+                0x00008eba                tinf_gzip_uncompress
+                0x000091b8                write_string
+                0x00009219                entry
+ *fill*         0x00009272        0x2 
+ .data          0x00009274        0x0 build/decompress.o
+ .rodata        0x00009274      0x12d build/decompress.o
+                0x000093a1                        _eentry = .
+                0x000015a1                        _entry_size = (_eentry - _sentry)
+                0x000093a1                        _sstage2 = .
 
-.stage2         0x0000938c       0x98 load address 0x0000178c
+.stage2         0x000093a4       0x7c load address 0x000017a1
  build/stage2.bin.o(.data)
- .data          0x0000938c       0x98 build/stage2.bin.o
-                0x0000938c                _binary_build_stage2_bin_gz_start
-                0x00009424                _binary_build_stage2_bin_gz_end
-                0x00009424                        _estage2 = .
-                0x00000098                        _stage2_size = (_estage2 - _sstage2)
+ *fill*         0x000093a4        0x0 
+ .data          0x000093a4       0x7c build/stage2.bin.o
+                0x000093a4                _binary_build_stage2_bin_gz_start
+                0x00009420                _binary_build_stage2_bin_gz_end
+                0x00009420                        _estage2 = .
+                0x0000007f                        _stage2_size = (_estage2 - _sstage2)
 OUTPUT(build/boot.bin binary)

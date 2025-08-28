@@ -19,8 +19,7 @@ SECTIONS
     . = STAGE2_VMA;
     .stage2 : SUBALIGN(4)
     {
-        *(.text*)
-        *(.data*)
-        *(.rodata*)
+        build/stage2_entry.o(.text)
+        build/stage2.o(.text .data .rodata)
     }
 }

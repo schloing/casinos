@@ -1,4 +1,4 @@
-OUTPUT_FORMAT(elf32)
+OUTPUT_FORMAT(elf32-i386)
 OUTPUT_ARCH(i386)
 
 SECTIONS
@@ -19,7 +19,7 @@ SECTIONS
         bin/tinflate.o(.text)
         bin/crc32.o(.text)
         bin/tinfgzip.o(.text)
-        build/entry.o(.text)
+        build/decompress_unlinked.elf(.text)
     }
 
     .data : SUBALIGN(4)
@@ -27,7 +27,7 @@ SECTIONS
         bin/tinflate.o(.data)
         bin/crc32.o(.data)
         bin/tinfgzip.o(.data)
-        build/entry.o(.data)
+        build/decompress_unlinked.elf(.data)
     }
 
     .rodata : SUBALIGN(4)
@@ -35,6 +35,6 @@ SECTIONS
         bin/tinflate.o(.rodata)
         bin/crc32.o(.rodata)
         bin/tinfgzip.o(.rodata)
-        build/entry.o(.rodata)
+        build/decompress_unlinked.elf(.rodata)
     }
 }

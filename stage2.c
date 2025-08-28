@@ -1,4 +1,4 @@
-void main() {
+void stage2_main() {
     printx("hello");
 }
 
