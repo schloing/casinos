@@ -38,7 +38,7 @@
 00000000000i[USBCTL] Pluggable USB devices
 00000000000i[USBCTL]   floppy mouse tablet keypad keyboard hub disk cdrom
 00000000000i[USBCTL]   printer
-00000000000i[MEM0  ] allocated memory at 0x7ffb834bd010. after alignment, vector=0x7ffb834be000, block_size = 128K
+00000000000i[MEM0  ] allocated memory at 0x7f7000fdd010. after alignment, vector=0x7f7000fde000, block_size = 128K
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
@@ -50,7 +50,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Thu Aug 28 23:20:09   2025 tz=utc (time0=1756423209)
+00000000000i[CMOS  ] Setting initial clock to: Fri Aug 29 23:36:48   2025 tz=utc (time0=1756510608)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -80,7 +80,7 @@
 00000000000i[PLUGIN] init_dev of 'harddrv' plugin device by virtual method
 00000000000i[HD    ] HD on ata0-0: 'build/test.dd', 'flat' mode
 00000000000i[IMG   ] hd_size: 16777216
-00000000000i[HD    ] ata0-0: using specified geometry: CHS=32/16/63 (sector size=512)
+00000000000i[HD    ] ata0-0: autodetect geometry: CHS=32/16/63 (sector size=512)
 00000000000i[HD    ] ata0-0: extra data outside of CHS address range
 00000000000i[HD    ] translation on ata0-0 set to 'none'
 00000000000i[PLUGIN] init_dev of 'pci_ide' plugin device by virtual method
@@ -236,24 +236,23 @@
 00001781786i[BIOS  ] ata0-0: PCHS=32/16/63 translation=none LCHS=32/16/63
 00005216033i[BIOS  ] IDE time out
 00008262634i[BIOS  ] Booting from 0000:7c00
-00112600560i[      ] Ctrl-C detected in signal handler.
-00112600561i[      ] dbg: Quit
-00112600561i[CPU0  ] CPU is in protected mode (active)
-00112600561i[CPU0  ] CS.mode = 32 bit
-00112600561i[CPU0  ] SS.mode = 32 bit
-00112600561i[CPU0  ] EFER   = 0x00000000
-00112600561i[CPU0  ] | EAX=00010000  EBX=00000000  ECX=000b8013  EDX=0000000f
-00112600561i[CPU0  ] | ESP=0008fff4  EBP=0008fff4  ESI=000e7d30  EDI=0000807c
-00112600561i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf AF pf cf
-00112600561i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-00112600561i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
-00112600561i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00112600561i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00112600561i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00112600561i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00112600561i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00112600561i[CPU0  ] | EIP=0001005a (0001005a)
-00112600561i[CPU0  ] | CR0=0x60000011 CR2=0x00000000
-00112600561i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
-00112600561i[CMOS  ] Last time: 1756423321 tz=utc (Thu Aug 28 23:22:01   2025)
-00112600561i[SIM   ] quit_sim called with exit code 0
+00097412000p[SDL2  ] >>PANIC<< POWER button turned off.
+00097412000i[CPU0  ] CPU is in protected mode (active)
+00097412000i[CPU0  ] CS.mode = 32 bit
+00097412000i[CPU0  ] SS.mode = 32 bit
+00097412000i[CPU0  ] EFER   = 0x00000000
+00097412000i[CPU0  ] | EAX=0008ff00  EBX=00000000  ECX=00000000  EDX=00000004
+00097412000i[CPU0  ] | ESP=0008fffc  EBP=00000005  ESI=000e7d30  EDI=0000807c
+00097412000i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf ZF af PF cf
+00097412000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00097412000i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
+00097412000i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00097412000i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00097412000i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00097412000i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00097412000i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00097412000i[CPU0  ] | EIP=00010005 (00010005)
+00097412000i[CPU0  ] | CR0=0x60000011 CR2=0x00000000
+00097412000i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
+00097412000i[CMOS  ] Last time: 1756510705 tz=utc (Fri Aug 29 23:38:25   2025)
+00097412000i[SIM   ] quit_sim called with exit code 1

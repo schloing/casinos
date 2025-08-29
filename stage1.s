@@ -1,6 +1,7 @@
-    format binary
+    bits 16
+    section .text
     org 0x7c00
-    use16
+
 _start:
     call main
 
@@ -20,8 +21,6 @@ diskread:
     jmp .attempt
 .done:
     ret
-
-memmap_amt_ent equ 0x8000
 
 memory_map_e820:
     mov di, memmap_addr
@@ -44,14 +43,14 @@ memory_map_e820:
     jc .failed
     cmp cl, 20
     jb .notext
-	test byte [es:di + 20], 1
-	je .skipent
+    test byte [es:di + 20], 1
+    je .skipent
 .notext:
     mov ecx, [es:di + 8]
-	or ecx, [es:di + 12]
-	jz .skipent
-	inc bp
-	add di, 24
+    or ecx, [es:di + 12]
+    jz .skipent
+    inc bp
+    add di, 24
 .skipent:
     test ebx, ebx
     jne .loop
@@ -87,8 +86,9 @@ hdd_boot:
     mov dl, bootdrive
     int 0x13
     cmp bx, 0xaa55
-    je load_stage2
+    je .hdd_confirmed
     jmp $                       ; no edd
+.hdd_confirmed:
 
 load_stage2:
     call memory_map_e820
@@ -101,7 +101,7 @@ load_stage2:
 
 load_gdt:
     cli
-    lgdt [gdtr]
+    lgdt [gdt]
 
     mov eax, cr0
     or eax, 1
@@ -115,21 +115,29 @@ load_gdt:
     mov ss, ax
     mov esp, 0x90000
 
-    jmp 0x08:load_gdt_setcs
+    jmp 0x08:.setcs
 
-    use32
-load_gdt_setcs:
+    bits 32
+.setcs:
     call 0x10000
     jmp $
 
-    ; data
-bootdrive = 0x80
-memmap_addr = 0x8004
+    section .data
 
-gdt_start:
+bootdrive equ 0x80
+memmap_amt_ent equ 0x8000
+memmap_addr equ 0x8004
+
+    ; global descriptor table
+    align 16
+gdt:
+    dw .end - .start - 1
+    dd .start
+
+.start:
     dq 0x0000000000000000
 
-gdt_code:
+.code:
     dw 0xffff
     dw 0x0000
     db 0x00
@@ -137,7 +145,7 @@ gdt_code:
     db 11001111b
     db 0x00
 
-gdt_data:
+.data:
     dw 0xffff
     dw 0x0000
     db 0x00
@@ -145,12 +153,9 @@ gdt_data:
     db 11001111b
     db 0x00
 
-gdt_end:
+.end:
 
-gdtr:
-    dw gdt_end - gdt_start - 1
-    dd gdt_start
-
+    ; disk address packet
     align 16
 dapack:
     db 0x10

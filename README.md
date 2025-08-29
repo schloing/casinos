@@ -1,7 +1,8 @@
 # casinoboot
 
 ## memory structure
-0x7c00: bootloader load address  
+0x7c00: bootloader load address
+0x7e00: vbe info structure
 0x8000: bios memmap # entries  
 0x8004: bios memmap  
 0x9000: 16-bit stack pointer  
