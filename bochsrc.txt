@@ -2,7 +2,7 @@ megs: 32
 # romimage: file=/usr/share/bochs/BIOS-bochs-latest
 # vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest
 
-ata0-master: type=disk, path="build/test.dd", cylinders=32, heads=16, spt=63, status=inserted
+ata0-master: type=disk, path="build/test.dd", mode=flat, status=inserted
 boot: disk
 
 # display_library: sdl2
