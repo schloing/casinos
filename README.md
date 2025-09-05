@@ -7,7 +7,6 @@
 0x8004: bios memmap  
 0x9000: 16-bit stack pointer  
 0xf000: stage2  
-0x10000: stage2  
 0x90000: 32-bit stack pointer  
 0xffffffff80000000: minimum executable load address  
 
