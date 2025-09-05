@@ -5,14 +5,19 @@
 _start:
     call main
 
+bootdrive      equ 0x80
+memmap_amt_ent equ 0x8000
+memmap_addr    equ 0x8004
+stage2_addr    equ 0xf000
+
 diskread:
     mov cx, 5                   ; retry counter
 .attempt:
     cmp cx, 0
     je .done
     mov ah, 0x42                ; extended read
-    lea si, [dapack]
     mov dl, bootdrive
+    lea si, [dapack]
     int 0x13
     jc .failed
     jmp .done
@@ -95,9 +100,9 @@ load_stage2:
 
     mov word [dapack.sectors], 10
     mov word [dapack.lba], 1
-    mov word [dapack.segment], 0x1000
-    mov word [dapack.offset], 0
-    call diskread               ; stage 2 -> 0x10000
+    mov word [dapack.segment], 0
+    mov word [dapack.offset], stage2_addr
+    call diskread               ; stage 2 -> 0xf000
 
 load_gdt:
     cli
@@ -107,7 +112,7 @@ load_gdt:
     or eax, 1
     mov cr0, eax
 
-    mov ax, 0x10
+    mov ax, 0x20
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -115,18 +120,14 @@ load_gdt:
     mov ss, ax
     mov esp, 0x90000
 
-    jmp 0x08:.setcs
+    jmp 0x18:.setcs
 
     bits 32
 .setcs:
-    call 0x10000
+    call stage2_addr
     jmp $
 
     section .data
-
-bootdrive equ 0x80
-memmap_amt_ent equ 0x8000
-memmap_addr equ 0x8004
 
     ; global descriptor table
     align 16
@@ -137,20 +138,36 @@ gdt:
 .start:
     dq 0x0000000000000000
 
-.code:
+.code16:
     dw 0xffff
     dw 0x0000
     db 0x00
-    db 10011010b
-    db 11001111b
+    db 0x9a         ; rx
+    db 0x00
     db 0x00
 
-.data:
+.data16:
     dw 0xffff
     dw 0x0000
     db 0x00
-    db 10010010b
-    db 11001111b
+    db 0x92         ; rw
+    db 0x00
+    db 0x00
+
+.code32:
+    dw 0xffff
+    dw 0x0000
+    db 0x00
+    db 0x9a         ; rx
+    db 0xcf
+    db 0x00
+
+.data32:
+    dw 0xffff
+    dw 0x0000
+    db 0x00
+    db 0x92         ; rw
+    db 0xcf
     db 0x00
 
 .end:
