@@ -1,10 +1,9 @@
-    section .code
-
-; basically identical to limine rm_int
-; void rm_int(int int_no, struct rm_regs* in_regs, struct rm_regs* out_regs)
 ; Copyright (c) 2020-2025 Limine
 ; SPDX-License-Identifier: BSD-2-Clause
+; stub to switch to real mode, issue a bios interrupt, return back to protected mode
+; void rm_int(int int_no, struct rm_regs* in_regs, struct rm_regs* out_regs)
 
+    section .real
     global rm_int
 rm_int:
     mov al, byte [esp + 4]
@@ -38,6 +37,7 @@ rm_int:
     mov eax, cr0
     and al, 0xfe                ; disable PE bit
     mov cr0, eax
+
     jmp 0x00:.setcs
 
 .setcs:
@@ -110,7 +110,6 @@ rm_int:
     ret
 
     align 16
-pm_state:
 .esp:       dd 0
 .out_regs:  dd 0                ; ptr
 .in_regs:   dd 0                ; ptr
