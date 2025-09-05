@@ -16,9 +16,12 @@ $(BUILD_DIR)/stage2.elf: stage2.c
 	gcc $(CC_ARGS) -c $^ -o $@
 
 $(BUILD_DIR)/stage2_entry.elf: stage2.s
-	fasm $^ $@
+	nasm -felf $^ -o $@
 
-$(BUILD_DIR)/stage2.bin: $(BUILD_DIR)/stage2.elf $(BUILD_DIR)/stage2_entry.elf
+$(BUILD_DIR)/int.elf: int.s
+	nasm -felf $^ -o $@
+
+$(BUILD_DIR)/stage2.bin: $(BUILD_DIR)/stage2.elf $(BUILD_DIR)/stage2_entry.elf $(BUILD_DIR)/int.elf
 	ld -m elf_i386 -T stage2.ld -o $@ $^
 
 $(BUILD_DIR)/boot.bin: $(BUILD_DIR)/stage1.bin $(BUILD_DIR)/stage2.bin 
@@ -48,6 +51,9 @@ dump: $(BUILD_DIR)/test.dd
 
 decompile: $(BUILD_DIR)/test.dd
 	objdump -D -b binary -m i386 -Maddr16,data16 $^
+
+decompile-32: $(BUILD_DIR)/test.dd
+	objdump -D -b binary -m i386 -Maddr32,data32 $^
 
 clean: $(BUILD_DIR)
 	rm -rf $(BUILD_DIR)
