@@ -6,7 +6,7 @@ struct vga_textmode_cursor {
     char y;
 };
 
-void init_textmode_cursor();
+void textmode_cursor_init();
 void printl(const char* string);
 
 #define VGA_TEXTMODE_ADDR 0xb8000

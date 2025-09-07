@@ -6,7 +6,7 @@
 
 void main_32()
 {
-    init_textmode_cursor();
+    textmode_cursor_init();
 
     printl("casinoboot");
 
