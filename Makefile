@@ -1,4 +1,4 @@
-CC_ARGS := -fno-pic -fno-builtin -ffreestanding -fno-stack-protector -std=gnu99 -m32 -march=i386 -nostdinc -nostdlib
+CC_ARGS := -fno-pic -fno-builtin -ffreestanding -fno-stack-protector -std=gnu99 -m32 -march=i386 -nostdinc -nostdlib -I .
 BOCHSRC := bochsrc.txt
 BOOT_OBJDUMP_ARGS := -Maddr16,data16 -m i386 
 BUILD_DIR := build
@@ -12,8 +12,11 @@ $(BUILD_DIR)/stage1.bin: stage1.s
 	rm -f $@
 	nasm -fbin $^ -o $@
 
-$(BUILD_DIR)/stage2.elf: stage2.c
-	gcc $(CC_ARGS) -c $^ -o $@
+STAGE2_SRCS := stage2.c textmode.c vbe.c
+STAGE2_ELFS := $(patsubst %.c,$(BUILD_DIR)/%.elf,$(STAGE2_SRCS))
+
+$(BUILD_DIR)/%.elf: %.c | $(BUILD_DIR)
+	gcc $(CC_ARGS) -c $< -o $@
 
 $(BUILD_DIR)/stage2_entry.elf: stage2.s
 	nasm -felf $^ -o $@
@@ -21,7 +24,7 @@ $(BUILD_DIR)/stage2_entry.elf: stage2.s
 $(BUILD_DIR)/int.elf: int.s
 	nasm -felf $^ -o $@
 
-$(BUILD_DIR)/stage2.bin: $(BUILD_DIR)/stage2.elf $(BUILD_DIR)/stage2_entry.elf $(BUILD_DIR)/int.elf
+$(BUILD_DIR)/stage2.bin: $(STAGE2_ELFS) $(BUILD_DIR)/stage2_entry.elf $(BUILD_DIR)/int.elf
 	ld -m elf_i386 -T stage2.ld -o $@ $^
 
 $(BUILD_DIR)/boot.bin: $(BUILD_DIR)/stage1.bin $(BUILD_DIR)/stage2.bin 
