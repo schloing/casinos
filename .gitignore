@@ -1,6 +1,6 @@
 .o
 .elf
 .bin
-.bochsout
-.ini
+bochsout.txt
+bx_enh_dbg.ini
 build/
