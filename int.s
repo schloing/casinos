@@ -95,7 +95,7 @@ rm_int:
 
     bits 32
 .bits32:
-    mov ax, 0x10
+    mov ax, 0x20
     mov ds, ax
     mov es, ax
     mov fs, ax
