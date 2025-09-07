@@ -7,14 +7,20 @@ SECTIONS
     .text :
     {
         build/stage2_entry.elf(.text)
-        build/stage2.elf(.text)
         build/int.elf(.text)
+        build/stage2.elf(.text)
+        build/textmode.elf(.text)
+        build/vbe.elf(.text)
     }
 
     .data :
     {
         build/stage2.elf(.data)
         build/stage2.elf(.rodata)
+        build/vbe.elf(.data)
+        build/vbe.elf(.rodata)
+        build/textmode.elf(.data)
+        build/textmode.elf(.rodata)
     }
 
     /DISCARD/ :
