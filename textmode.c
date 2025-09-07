@@ -1,20 +1,27 @@
 #include <stdint.h>
 #include <textmode.h>
 
-static volatile char* video = (volatile char*)VGA_TEXTMODE_ADDR;
+static volatile uint16_t* video = (volatile uint16_t*)VGA_TEXTMODE_ADDR;
 
-static struct vga_textmode_cursor cursor;
-
-void textmode_cursor_init()
-{
-    cursor.x = 0;
-    cursor.y = 0;
-}
+static volatile struct vga_textmode_ctx ctx = { 0, 0x0f };
 
 void printl(const char* string)
 {
     while (*string != 0) {
-        video[cursor.x++] = *string++;
-        video[cursor.x++] = 0x0f; // white on black
+        if (*string == '\n') {
+            ctx.offset += SCREEN_COLS - (ctx.offset % SCREEN_COLS);
+        }
+
+        else {
+            video[ctx.offset] = (ctx.colour << 8) | *string;
+            ctx.offset += 1;
+        }
+
+        if (ctx.offset >= SCREEN_ROWS * SCREEN_COLS) {
+            // TODO: scroll
+            ctx.offset = 0;
+        }
+
+        string++;
     }
 }

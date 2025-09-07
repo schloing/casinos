@@ -6,8 +6,6 @@
 
 void main_32()
 {
-    textmode_cursor_init();
-
     printl("casinoboot");
 
     struct vbe_info_structure vbe_info = { 0 };

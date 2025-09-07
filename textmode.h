@@ -1,12 +1,13 @@
 #ifndef TEXTMODE_H
 #define TEXTMODE_H
 
-struct vga_textmode_cursor {
-    char x;
-    char y;
+#include <stdint.h>
+
+struct vga_textmode_ctx {
+    uint16_t offset;
+    uint8_t colour;
 };
 
-void textmode_cursor_init();
 void printl(const char* string);
 
 #define VGA_TEXTMODE_ADDR 0xb8000
