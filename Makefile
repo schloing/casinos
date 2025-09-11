@@ -25,7 +25,7 @@ $(BUILD_DIR)/int.elf: int.s
 	nasm -felf $^ -o $@
 
 $(BUILD_DIR)/stage2.bin: $(STAGE2_ELFS) $(BUILD_DIR)/stage2_entry.elf $(BUILD_DIR)/int.elf
-	ld -m elf_i386 -T stage2.ld -o $@ $^
+	ld -m elf_i386 -T stage2.ld -Map $(BUILD_DIR)/stage2.map -o $@ $^
 
 $(BUILD_DIR)/boot.bin: $(BUILD_DIR)/stage1.bin $(BUILD_DIR)/stage2.bin 
 	cat $^ > $@
