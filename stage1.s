@@ -74,10 +74,8 @@ main:                           ; noreturn
     mov es, ax
     mov fs, ax
     mov gs, ax
-   
-    mov ax, 0x9000
     mov ss, ax
-    mov sp, 0xffff
+    mov sp, 0xb000
     sti
 
     cmp dl, bootdrive
@@ -112,6 +110,10 @@ load_gdt:
     or eax, 1
     mov cr0, eax
 
+    jmp 0x18:.setcs
+
+    bits 32
+.setcs:
     mov ax, 0x20
     mov ds, ax
     mov es, ax
@@ -120,10 +122,6 @@ load_gdt:
     mov ss, ax
     mov esp, 0x90000
 
-    jmp 0x18:.setcs
-
-    bits 32
-.setcs:
     call stage2_addr
     jmp $
 
