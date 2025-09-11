@@ -33,7 +33,7 @@ rm_int:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    mov ss, ax
+
     mov eax, cr0
     and al, 0xfe                ; disable PE bit
     mov cr0, eax
@@ -41,9 +41,6 @@ rm_int:
     jmp 0x00:.setcs
 
 .setcs:
-    xor ax, ax
-    mov ss, ax
-
     mov dword [ss:.esp], esp
     mov esp, dword [ss:.in_regs]
     pop gs
@@ -100,7 +97,6 @@ rm_int:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    mov ss, ax
 
     pop ebp
     pop edi
