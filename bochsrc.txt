@@ -5,13 +5,16 @@ megs: 32
 ata0-master: type=disk, path="build/test.dd", mode=flat, status=inserted
 boot: disk
 
-# display_library: sdl2
 magic_break: enabled=1
 
 log: bochsout.txt
 panic: action=ask
 error: action=report
 info: action=report
+debug: action=ignore, pci=report
+debugger_log: bochsdbg.txt
+
+vga: extension=vbe, update_freq=5
 
 keyboard: type=mf, serial_delay=250, paste_delay=100000
 cpu: ips=1000000
@@ -19,4 +22,5 @@ mouse: enabled=0
 private_colormap: enabled=0
 fullscreen: enabled=0
 screenmode: name="sample"
-magic_break: enabled=1
+clock: sync=realtime, rtc_sync=1, time0=utc
+# port_e9_hack: enabled=1
