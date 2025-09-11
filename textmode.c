@@ -5,7 +5,7 @@ static volatile uint16_t* video = (volatile uint16_t*)VGA_TEXTMODE_ADDR;
 
 static volatile struct vga_textmode_ctx ctx = { 0, 0x0f };
 
-void printl(const char* string)
+void print(const char* string)
 {
     while (*string != 0) {
         if (*string == '\n') {

@@ -8,7 +8,7 @@ struct vga_textmode_ctx {
     uint8_t colour;
 };
 
-void printl(const char* string);
+void print(const char* string);
 
 #define VGA_TEXTMODE_ADDR 0xb8000
 #define SCREEN_COLS 80
