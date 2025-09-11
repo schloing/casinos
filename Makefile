@@ -1,4 +1,4 @@
-CC_ARGS := -fno-pic -fno-builtin -ffreestanding -fno-stack-protector -std=gnu99 -m32 -march=i386 -nostdinc -nostdlib -I .
+CC_ARGS := -fno-pic -fno-builtin -ffreestanding -fno-stack-protector -std=gnu99 -m32 -march=i386 -nostdlib -I .
 BOCHSRC := bochsrc.txt
 BOOT_OBJDUMP_ARGS := -Maddr16,data16 -m i386 
 BUILD_DIR := build
