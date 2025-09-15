@@ -2,6 +2,6 @@
 .elf
 .bin
 bochsout.txt
-bocshdbg.txt
+bochsdbg.txt
 bx_enh_dbg.ini
 build/
