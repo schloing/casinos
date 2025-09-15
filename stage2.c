@@ -6,12 +6,14 @@
 
 void main_32()
 {
-    printl("casinoboot");
+    printf("casinoboot\n");
 
     struct vbe_info_structure vbe_info = { 0 };
 
     if (vbe_controller_get_info(&vbe_info) == -1) {
-        printl("failed to get vbe controller info");
+        printf("failed to get vbe controller info\n");
+    } else {
+        printf("vbe controller get info success\n");
     }
 
     const struct mbr_partition_table* mbr_pt = (const struct mbr_partition_table*)MBR_PARTITION_TABLE_ADDR;
@@ -21,7 +23,7 @@ void main_32()
         if (entry.partition_type == 0) break;
     
         if (entry.partition_type == 0x83) {
-            printl("linux partition");
+            printf("linux partition\n");
         }
     }
 
