@@ -3,45 +3,42 @@
 #include <stdbool.h>
 #include <textmode.h>
 
-static volatile uint16_t* _video = (volatile uint16_t*)VGA_TEXTMODE_ADDR;
-static volatile struct vga_textmode_ctx _ctx = { 0, 0x0f };
+static volatile uint16_t* video = (volatile uint16_t*)VGA_TEXTMODE_ADDR;
 
-static char* _itoa(int value, char* result, int base);
-static void _printf_flush_buffer(int* buff_i);
-static volatile char _printf_buffer[PRINTF_BUFSIZ] = { 0 };
+static struct vga_textmode_ctx vga_ctx = {
+    .offset = 0,
+    .colour = 0x0f,
+};
 
-void print(const char* string)
+// prevent relocation to .bss
+static struct printf_buffer __attribute__((section(".data"))) pbuff = {
+    .buffer = { 0 },
+    .size = 0,
+};
+
+void print(const char* s)
 {
-    while (*string != 0) {
-        if (*string == '\n') {
-            _ctx.offset += SCREEN_COLS - (_ctx.offset % SCREEN_COLS);
+    while (*s != 0) {
+        if (*s == '\n') {
+            vga_ctx.offset += SCREEN_COLS - (vga_ctx.offset % SCREEN_COLS);
         }
 
         else {
-            _video[_ctx.offset] = (_ctx.colour << 8) | *string;
-            _ctx.offset += 1;
+            video[vga_ctx.offset] = (vga_ctx.colour << 8) | *s;
+            vga_ctx.offset += 1;
         }
 
-        if (_ctx.offset >= SCREEN_ROWS * SCREEN_COLS) {
+        if (vga_ctx.offset >= SCREEN_ROWS * SCREEN_COLS) {
             // TODO: scroll
-            _ctx.offset = 0;
+            vga_ctx.offset = 0;
         }
 
-        string++;
-    }
-}
-
-static void _printf_flush_buffer(int* buff_i)
-{
-    if (*buff_i > 0) {
-        _printf_buffer[*buff_i] = '\0';
-        print((const char*)_printf_buffer);
-        *buff_i = 0;
+        s++;
     }
 }
 
 // https://www.strudel.org.uk/itoa/
-static char* _itoa(int value, char* result, int base)
+char* itoa(int value, char* result, int base)
 {
     // check that the base if valid
     if (base < 2 || base > 36) { *result = '\0'; return result; }
@@ -66,62 +63,74 @@ static char* _itoa(int value, char* result, int base)
     return result;
 }
 
+int strlen(const char* s)
+{
+    int i = 0;
+    while (s[i])
+        i++;
+    return i;
+}
+
+void printf_flush_buffer()
+{
+    if (pbuff.size > 0) {
+        pbuff.buffer[pbuff.size] = '\0';
+        print((const char*)pbuff.buffer);
+    }
+
+    pbuff.size = 0;
+}
+
+void printf_buffer_write(char c)
+{
+    if (pbuff.size >= PRINTF_BUFSIZ) {
+        printf_flush_buffer();
+    }
+
+    pbuff.buffer[pbuff.size++] = c;
+}
+
+void printf_buffer_write_s(const char* s)
+{
+    while (*s) {
+        printf_buffer_write(*s++);
+    }
+}
+
 void printf(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
-    char numbuf[20];
-    char* s;
-    char c;
-    int d;
-
-    int buff_i = 0;
-    int i = 0;
-
-    while (fmt[i]) {
-        if (fmt[i] == '%') {
-            i++; // advance to format specifier
-
-            switch (fmt[i]) {
-            case 's':
-                s = va_arg(ap, char*);
-                while (*s) {
-                    _printf_buffer[buff_i++] = *s++;
-                    if (buff_i >= PRINTF_BUFSIZ) _printf_flush_buffer(&buff_i);
-                }
-                break;
-
-            case 'd':
-                d = va_arg(ap, int);
-                _itoa(d, numbuf, 10);
-                s = numbuf;
-                while (*s) {
-                    _printf_buffer[buff_i++] = *s++;
-                    if (buff_i >= PRINTF_BUFSIZ) _printf_flush_buffer(&buff_i);
-                }
-                break;
-                
-            case 'c':
-                c = (char)va_arg(ap, int);
-                _printf_buffer[buff_i++] = c;
-                if (buff_i >= PRINTF_BUFSIZ) _printf_flush_buffer(&buff_i);
-                break;
-
-            case '%':
-                _printf_buffer[buff_i++] = '%';
-                if (buff_i >= PRINTF_BUFSIZ) _printf_flush_buffer(&buff_i);
-                break;
-
-            }
-        } else {
-            _printf_buffer[buff_i++] = fmt[i];
-            if (buff_i >= PRINTF_BUFSIZ) _printf_flush_buffer(&buff_i);
+    for (const char* p = fmt; *p; p++) {
+        if (*p != '%') {
+            printf_buffer_write(*p);
+            continue;
         }
 
-        i++;
+        p++;
+
+        switch (p[0]) {
+        case 's': {
+            const char* s = va_arg(ap, char*);
+            printf_buffer_write_s(s);
+            break;
+        }
+        case 'c': {
+            char c = (char)va_arg(ap, int);
+            printf_buffer_write(c);
+            break;
+        }
+        case 'd': {
+            char numbuf[20];
+            int d = va_arg(ap, int);
+            (void)itoa(d, numbuf, 10);
+            printf_buffer_write_s(numbuf);
+            break;
+        }
+        }
     }
 
-    _printf_flush_buffer(&buff_i);
+    printf_flush_buffer();
     va_end(ap);
 }
