@@ -8,7 +8,9 @@ void main_32()
 {
     printf("casinoboot\n");
 
-    struct vbe_info_structure vbe_info = { 0 };
+    struct vbe_info_structure vbe_info = {
+        .signature = "VBE2"
+    };
 
     if (vbe_controller_get_info(&vbe_info) == -1) {
         printf("failed to get vbe controller info\n");
