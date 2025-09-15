@@ -63,14 +63,6 @@ char* itoa(int value, char* result, int base)
     return result;
 }
 
-int strlen(const char* s)
-{
-    int i = 0;
-    while (s[i])
-        i++;
-    return i;
-}
-
 void printf_flush_buffer()
 {
     if (pbuff.size > 0) {
