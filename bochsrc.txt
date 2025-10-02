@@ -1,6 +1,6 @@
 megs: 32
 # romimage: file=/usr/share/bochs/BIOS-bochs-latest
-# vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest
+vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest # ensure vesa support
 
 ata0-master: type=disk, path="build/test.dd", mode=flat, status=inserted
 boot: disk
@@ -14,7 +14,7 @@ info: action=report
 debug: action=ignore, pci=report
 debugger_log: bochsdbg.txt
 
-vga: extension=vbe, update_freq=5
+vga: extension=vbe
 
 keyboard: type=mf, serial_delay=250, paste_delay=100000
 cpu: ips=1000000
