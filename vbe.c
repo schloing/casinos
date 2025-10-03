@@ -26,8 +26,8 @@ int vbe_get_mode_info(int mode_no, struct vbe_mode_info_structure* vbe_mode_info
 
     r.eax = 0x4f01;
     r.ecx = mode_no;
+    r.es = (uint32_t)vbe_mode_info;
     r.edi = 0;
-    r.esi = (uint32_t)vbe_mode_info;
 
     rm_int(0x10, &r, &r);
 
