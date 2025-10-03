@@ -56,8 +56,9 @@ struct vbe_mode_info_structure {
     uint32_t off_screen_mem_off;
     uint16_t off_screen_mem_size;
     uint8_t reserved1[206];
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 int vbe_controller_get_info(struct vbe_info_structure* vbe_info);
+int vbe_get_mode_info(uint16_t mode_no, struct vbe_mode_info_structure* vbe_mode_info);
 
 #endif
