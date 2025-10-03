@@ -17,6 +17,7 @@ SECTIONS
     {
         build/stage2.elf(.data)
         build/stage2.elf(.rodata)
+        build/stage2.elf(.bss)
         build/vbe.elf(.data)
         build/vbe.elf(.rodata)
         build/textmode.elf(.data)
@@ -25,7 +26,6 @@ SECTIONS
 
     /DISCARD/ :
     {
-        *(.bss)
         *(.eh_frame)
         *(.rela.eh_frame)
         *(.comment)
