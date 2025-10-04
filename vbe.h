@@ -60,5 +60,7 @@ struct vbe_mode_info_structure {
 
 int vbe_controller_get_info(struct vbe_info_structure* vbe_info);
 int vbe_get_mode_info(uint16_t mode_no, struct vbe_mode_info_structure* vbe_mode_info);
+int vbe_set_mode(uint16_t mode_no);
+uint16_t vbe_find_nearest_mode(uint16_t* modes, int width, int height, int depth, struct vbe_mode_info_structure* vbe_mode_info);
 
 #endif
