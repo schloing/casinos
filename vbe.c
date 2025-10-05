@@ -1,9 +1,10 @@
 #include <real.h>
 #include <stdint.h>
-#include <textmode.h>
-#include <vbe.h>
+#include <video/lfb.h>
+#include <video/textmode.h>
+#include <video/vbe.h>
 
-int vbe_controller_get_info(struct vbe_info_structure* vbe_info)
+int vbe_controller_get_info(struct vbe_info* vbe_info)
 {
     struct rm_regs r = { 0 };
 
@@ -20,7 +21,7 @@ int vbe_controller_get_info(struct vbe_info_structure* vbe_info)
     return 0;
 }
 
-int vbe_get_mode_info(uint16_t mode_no, struct vbe_mode_info_structure* vbe_mode_info)
+int vbe_get_mode_info(uint16_t mode_no, struct vbe_mode_info* vbe_mode_info)
 {
     struct rm_regs r = { 0 };
 
@@ -45,6 +46,8 @@ int vbe_set_mode(uint16_t mode_no)
     r.eax = 0x4f02;
     r.ebx = (uint32_t)(mode_no | 0x4000); // set lfb bit
 
+    // TODO: do edid to check monitor support
+
     rm_int(0x10, &r, &r);
 
     if ((r.eax & 0xffff) != 0x4f) {
@@ -58,7 +61,7 @@ int vbe_set_mode(uint16_t mode_no)
 #define ABSOLUTE_DIFFERENCE(a, b) ((int)(a > b ? a - b : b - a))
 
 uint16_t vbe_find_nearest_mode(uint16_t* modes, int width, int height, int bpp,
-                               struct vbe_mode_info_structure* vbe_mode_info)
+                               struct vbe_mode_info* vbe_mode_info)
 {
     uint16_t best = 0x100;
 
@@ -93,4 +96,44 @@ uint16_t vbe_find_nearest_mode(uint16_t* modes, int width, int height, int bpp,
     }
 
     return best;
+}
+
+int vbe_attempt_switch()
+{
+    struct vbe_info vbe_info = { .signature = "VBE2" };
+    struct vbe_mode_info vbe_mode_info = { 0 };
+    uint16_t best_mode, *modes;
+
+    if (vbe_controller_get_info(&vbe_info) == -1) {
+        printf("failed to get vbe controller info\n");
+        return -1;
+    }
+
+    modes = (uint16_t*)RM_FAR_TO_PHYS(vbe_info.video_modes);
+
+    if ((uint32_t)modes < (uint32_t)&vbe_info) {
+        return -1;
+    }
+
+    // TODO: switch from preprocessor to configurable variables
+
+#define VBE_PREFERRED_RES_X 1280
+#define VBE_PREFERRED_RES_Y 1024
+#define VBE_PREFERRED_BPP   24
+
+    best_mode = vbe_find_nearest_mode(modes,
+            VBE_PREFERRED_RES_X, VBE_PREFERRED_RES_Y, VBE_PREFERRED_BPP,
+            &vbe_mode_info);
+
+    if (vbe_set_mode(best_mode) == -1) {
+        printf("failed to set vbe mode %d\n", best_mode);
+        return -1;
+    }
+
+    vbe_lfb.width = vbe_mode_info.width;
+    vbe_lfb.height = vbe_mode_info.height;
+    vbe_lfb.pitch = vbe_mode_info.pitch;
+    vbe_lfb.bpp = vbe_mode_info.bpp;
+    vbe_lfb.pwidth = vbe_mode_info.bpp / 8;
+    vbe_lfb.framebuffer = (unsigned char*)vbe_mode_info.framebuffer;
 }

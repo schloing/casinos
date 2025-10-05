@@ -13,8 +13,6 @@ struct vga_textmode_ctx {
     uint8_t colour;
 };
 
-// TODO: organise shit irrelevant to textmode into other headers
-
 struct printf_buffer {
     char buffer[PRINTF_BUFSIZ];
     int size;

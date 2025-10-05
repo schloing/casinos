@@ -27,5 +27,6 @@ void rm_int(uint8_t int_no, struct rm_regs* in_regs, struct rm_regs* out_regs);
 #define RM_FAR_OFF(x) ((uint16_t)((uint32_t)x & 0xffff))
 
 #define RM_FAR_TO_PHYS(x) (((uint32_t)RM_FAR_SEG(x) << 4) + (uint32_t)RM_FAR_OFF(x))
+#define RM_SEG_OFF_TO_PHYS(seg, off) ((uint32_t)((seg) << 4) + (off))
 
 #endif

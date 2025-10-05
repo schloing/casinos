@@ -1,7 +1,7 @@
-#include <stdint.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <textmode.h>
+#include <stdint.h>
+#include <video/textmode.h>
 
 static volatile uint16_t* video = (volatile uint16_t*)VGA_TEXTMODE_ADDR;
 

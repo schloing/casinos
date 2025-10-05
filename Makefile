@@ -12,7 +12,7 @@ $(BUILD_DIR)/stage1.bin: stage1.s
 	rm -f $@
 	nasm -fbin $^ -o $@
 
-STAGE2_SRCS := stage2.c textmode.c vbe.c
+STAGE2_SRCS := stage2.c textmode.c vbe.c lfb.c vga.c
 STAGE2_ELFS := $(patsubst %.c,$(BUILD_DIR)/%.elf,$(STAGE2_SRCS))
 
 $(BUILD_DIR)/%.elf: %.c | $(BUILD_DIR)

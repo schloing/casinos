@@ -2,10 +2,11 @@
 #define VBE_H
 
 #include <stdint.h>
+#include <video/lfb.h>
 
 // https://www.phatcode.net/res/221/files/vbe20.pdf
 
-struct vbe_info_structure {
+struct vbe_info {
     char signature[4];          // VBE2
     uint16_t version;
     uint32_t oem;
@@ -20,7 +21,7 @@ struct vbe_info_structure {
     char oem_data[256];
 } __attribute__((packed));
 
-struct vbe_mode_info_structure {
+struct vbe_mode_info {
     uint16_t attributes;
     uint8_t window_a;
     uint8_t window_b;
@@ -58,9 +59,13 @@ struct vbe_mode_info_structure {
     uint8_t reserved1[206];
 } __attribute__((packed));
 
-int vbe_controller_get_info(struct vbe_info_structure* vbe_info);
-int vbe_get_mode_info(uint16_t mode_no, struct vbe_mode_info_structure* vbe_mode_info);
+int vbe_controller_get_info(struct vbe_info* vbe_info);
+int vbe_get_mode_info(uint16_t mode_no, struct vbe_mode_info* vbe_mode_info);
 int vbe_set_mode(uint16_t mode_no);
-uint16_t vbe_find_nearest_mode(uint16_t* modes, int width, int height, int depth, struct vbe_mode_info_structure* vbe_mode_info);
+
+uint16_t vbe_find_nearest_mode(uint16_t* modes, int width, int height, int depth,
+                               struct vbe_mode_info* vbe_mode_info);
+
+int vbe_attempt_switch();
 
 #endif
