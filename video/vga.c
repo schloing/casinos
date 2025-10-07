@@ -1,6 +1,6 @@
 #include <real.h>
 #include <stdint.h>
-#include <video/vga.h>
+#include <vga.h>
 
 uint8_t* font_map = 0;
 

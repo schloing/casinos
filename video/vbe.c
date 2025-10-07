@@ -1,8 +1,8 @@
 #include <real.h>
 #include <stdint.h>
-#include <video/lfb.h>
-#include <video/textmode.h>
-#include <video/vbe.h>
+#include <lfb.h>
+#include <textmode.h>
+#include <vbe.h>
 
 int vbe_controller_get_info(struct vbe_info* vbe_info)
 {

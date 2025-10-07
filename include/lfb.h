@@ -2,7 +2,7 @@
 #define LFB_H
 
 #include <stdint.h>
-#include <video/vbe.h>
+#include <vbe.h>
 
 struct vbe_lfb {
     uint16_t width;

@@ -2,7 +2,7 @@
 #define VBE_H
 
 #include <stdint.h>
-#include <video/lfb.h>
+#include <lfb.h>
 
 // https://www.phatcode.net/res/221/files/vbe20.pdf
 

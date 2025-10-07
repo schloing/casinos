@@ -1,4 +1,4 @@
-CC_ARGS := -fno-pic -fno-builtin -ffreestanding -fno-stack-protector -std=gnu99 -m32 -march=i386 -nostdlib -O0 -I .
+CC_ARGS := -fno-pic -fno-builtin -ffreestanding -fno-stack-protector -std=gnu99 -m32 -march=i386 -nostdlib -O0 -Iinclude/
 BOCHSRC := bochsrc.txt
 BOOT_OBJDUMP_ARGS := -Maddr16,data16 -m i386 
 BUILD_DIR := build
@@ -12,10 +12,13 @@ $(BUILD_DIR)/stage1.bin: stage1.s
 	rm -f $@
 	nasm -fbin $^ -o $@
 
-STAGE2_SRCS := stage2.c textmode.c vbe.c lfb.c vga.c
-STAGE2_ELFS := $(patsubst %.c,$(BUILD_DIR)/%.elf,$(STAGE2_SRCS))
+STAGE2_SRCS := $(wildcard *.c) $(wildcard video/*.c)
+STAGE2_ELFS := $(addprefix $(BUILD_DIR)/, $(notdir $(STAGE2_SRCS:.c=.elf)))
 
 $(BUILD_DIR)/%.elf: %.c | $(BUILD_DIR)
+	gcc $(CC_ARGS) -c $< -o $@
+
+$(BUILD_DIR)/%.elf: video/%.c | $(BUILD_DIR)
 	gcc $(CC_ARGS) -c $< -o $@
 
 $(BUILD_DIR)/stage2_entry.elf: stage2.s

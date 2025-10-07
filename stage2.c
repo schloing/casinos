@@ -1,10 +1,10 @@
 #include <mbr.h>
 #include <real.h>
 #include <stdint.h>
-#include <video/lfb.h>
-#include <video/textmode.h>
-#include <video/vbe.h>
-#include <video/vga.h>
+#include <lfb.h>
+#include <textmode.h>
+#include <vbe.h>
+#include <vga.h>
 
 void main_32()
 {

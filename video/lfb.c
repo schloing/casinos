@@ -1,6 +1,6 @@
 #include <stdint.h>
-#include <video/lfb.h>
-#include <video/vga.h>
+#include <lfb.h>
+#include <vga.h>
 
 struct vbe_lfb vbe_lfb = { .fg_colour = 0xffffff, .bg_colour = 0 };
 
