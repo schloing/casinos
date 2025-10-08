@@ -1,13 +1,15 @@
+#include <lfb.h>
 #include <mbr.h>
+#include <printf.h>
 #include <real.h>
 #include <stdint.h>
-#include <lfb.h>
-#include <textmode.h>
 #include <vbe.h>
 #include <vga.h>
 
 void main_32()
 {
+    printf("casinoboot\n");
+
     font_map = vga_get_font_addr();
     vbe_attempt_switch(&vbe_lfb);
 

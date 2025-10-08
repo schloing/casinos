@@ -13,16 +13,4 @@ struct vga_textmode_ctx {
     uint8_t colour;
 };
 
-struct printf_buffer {
-    char buffer[PRINTF_BUFSIZ];
-    int size;
-};
-
-char* itoa(int value, char* result, int base);
-void print(const char* s);
-void printf(const char* fmt, ...);
-void printf_flush_buffer();
-void printf_buffer_write(char c);
-void printf_buffer_write_s(const char* s);
-
 #endif
