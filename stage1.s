@@ -96,7 +96,7 @@ hdd_boot:
 load_stage2:
     call memory_map_e820
 
-    mov word [dapack.sectors], 10
+    mov word [dapack.sectors], 30
     mov word [dapack.lba], 1
     mov word [dapack.segment], 0
     mov word [dapack.offset], stage2_addr
