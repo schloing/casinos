@@ -10,8 +10,7 @@ static struct vga_textmode_ctx vga_ctx = {
     .colour = 0x0f,
 };
 
-// prevent relocation to .bss
-static struct printf_buffer __attribute__((section(".data"))) pbuff = {
+static struct printf_buffer pbuff = {
     .buffer = { 0 },
     .size = 0,
 };
