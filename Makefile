@@ -2,6 +2,8 @@ CC_ARGS := -fno-pic -fno-builtin -ffreestanding -fno-stack-protector -std=gnu99 
 BOCHSRC := bochsrc.txt
 BOOT_OBJDUMP_ARGS := -Maddr16,data16 -m i386 
 BUILD_DIR := build
+CC := gcc
+LD := ld
 
 default: $(BUILD_DIR) $(BUILD_DIR)/test.dd
 
@@ -16,10 +18,10 @@ STAGE2_SRCS := $(wildcard *.c) $(wildcard video/*.c)
 STAGE2_ELFS := $(addprefix $(BUILD_DIR)/, $(notdir $(STAGE2_SRCS:.c=.elf)))
 
 $(BUILD_DIR)/%.elf: %.c | $(BUILD_DIR)
-	gcc $(CC_ARGS) -c $< -o $@
+	$(CC) $(CC_ARGS) -c $< -o $@
 
 $(BUILD_DIR)/%.elf: video/%.c | $(BUILD_DIR)
-	gcc $(CC_ARGS) -c $< -o $@
+	$(CC) $(CC_ARGS) -c $< -o $@
 
 $(BUILD_DIR)/stage2_entry.elf: stage2.s
 	nasm -felf $^ -o $@
@@ -28,7 +30,7 @@ $(BUILD_DIR)/int.elf: int.s
 	nasm -felf $^ -o $@
 
 $(BUILD_DIR)/stage2.bin: $(STAGE2_ELFS) $(BUILD_DIR)/stage2_entry.elf $(BUILD_DIR)/int.elf
-	ld -m elf_i386 -T stage2.ld -Map $(BUILD_DIR)/stage2.map -o $@ $^
+	$(LD) -m elf_i386 -T stage2.ld -Map $(BUILD_DIR)/stage2.map -o $@ $^
 
 $(BUILD_DIR)/boot.bin: $(BUILD_DIR)/stage1.bin $(BUILD_DIR)/stage2.bin 
 	cat $^ > $@
